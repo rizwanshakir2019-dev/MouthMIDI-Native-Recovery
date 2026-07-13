@@ -19,6 +19,16 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var midiCCInput: EditText
 
+    private lateinit var jawClosedCalibrationInput: EditText
+
+    private lateinit var jawOpenCalibrationInput: EditText
+
+    private lateinit var smoothingInput: EditText
+
+    private lateinit var minCCInput: EditText
+
+    private lateinit var maxCCInput: EditText
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -40,12 +50,47 @@ class SettingsActivity : AppCompatActivity() {
         midiCCInput =
             findViewById(R.id.midiCCInput)
 
+        jawClosedCalibrationInput =
+            findViewById(R.id.jawClosedCalibrationInput)
+
+        jawOpenCalibrationInput =
+            findViewById(R.id.jawOpenCalibrationInput)
+
+        smoothingInput =
+            findViewById(R.id.smoothingInput)
+
+        minCCInput =
+            findViewById(R.id.minCCInput)
+
+        maxCCInput =
+            findViewById(R.id.maxCCInput)
+
         midiChannelInput.setText(
             settings.midiChannel.toString()
         )
 
         midiCCInput.setText(
             settings.midiCC.toString()
+        )
+
+        jawClosedCalibrationInput.setText(
+            settings.jawClosedCalibration.toString()
+        )
+
+        jawOpenCalibrationInput.setText(
+            settings.jawOpenCalibration.toString()
+        )
+
+        smoothingInput.setText(
+            settings.smoothing.toString()
+        )
+
+        minCCInput.setText(
+            settings.minCC.toString()
+        )
+
+        maxCCInput.setText(
+            settings.maxCC.toString()
         )
 
         flashlightSwitch.isChecked =
@@ -75,6 +120,28 @@ class SettingsActivity : AppCompatActivity() {
 
         settings.keepScreenAwake =
             keepScreenAwakeSwitch.isChecked
+
+        settings.jawClosedCalibration =
+            jawClosedCalibrationInput.text.toString()
+                .toFloatOrNull() ?: 0.01f
+
+        settings.jawOpenCalibration =
+            jawOpenCalibrationInput.text.toString()
+                .toFloatOrNull() ?: 0.80f
+
+        settings.smoothing =
+            smoothingInput.text.toString()
+                .toFloatOrNull() ?: 0f
+
+        settings.minCC =
+            (minCCInput.text.toString()
+                .toIntOrNull() ?: 0)
+                .coerceIn(0,127)
+
+        settings.maxCC =
+            (maxCCInput.text.toString()
+                .toIntOrNull() ?: 127)
+                .coerceIn(0,127)
 
         settingsRepository.save(settings)
     }
