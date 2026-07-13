@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
 
                 outputStatus.text =
                     if (connected)
-                        "USB MIDI"
+                        "USB MIDI✅"
                     else
                         "No MIDI"
 
@@ -441,7 +441,7 @@ class MainActivity : AppCompatActivity() {
         cameraExecutor.shutdown()
 
 
-        midiOutputManager.disconnect()
+        midiOutputManager.cleanup()
         faceLandmarker?.close()
     }
 }

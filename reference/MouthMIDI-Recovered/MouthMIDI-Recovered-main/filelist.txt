@@ -1,0 +1,10 @@
+app/(tabs)/_layout.tsx
+app/(tabs)/index.tsx
+app/+not-found.tsx
+app/_layout.tsx
+components/ErrorBoundary.tsx
+components/ErrorFallback.tsx
+components/KeyboardAwareScrollViewCompat.tsx
+constants/colors.ts
+contexts/MidiContext.tsx
+hooks/useColors.ts

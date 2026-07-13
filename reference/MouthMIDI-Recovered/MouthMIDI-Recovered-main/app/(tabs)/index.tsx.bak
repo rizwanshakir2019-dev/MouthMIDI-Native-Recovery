@@ -1,0 +1,890 @@
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Dimensions,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import type { CameraView as CameraViewType } from 'expo-camera';
+import * as FaceDetector from 'expo-face-detector';
+import Animated, {
+  interpolateColor,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { useColors } from '@/hooks/useColors';
+import { useMidi } from '@/contexts/MidiContext';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+type CalibModal = null | 'closed' | 'open';
+type MouthPosition = { x: number; y: number };
+
+interface FaceResult {
+  leftMouthPosition?: MouthPosition;
+  rightMouthPosition?: MouthPosition;
+  bottomMouthPosition?: MouthPosition;
+  mouthPosition?: MouthPosition;       // center of mouth
+  noseBasePosition?: MouthPosition;    // useful fallback
+}
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
+
+export default function MouthMidiScreen() {
+  const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const {
+    settings,
+    updateSettings,
+    usbStatus,
+    refreshUsb,
+    wifiStatus,
+    connectWifi,
+    disconnectWifi,
+    sendCC,
+    lastCCValue,
+    activeOutput,
+  } = useMidi();
+
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isTracking, setIsTracking] = useState(true);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [faceError, setFaceError] = useState<string | null>(null);
+  const [calibModal, setCalibModal] = useState<CalibModal>(null);
+  const [calibFullMode, setCalibFullMode] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [hostInput, setHostInput] = useState(settings.wifiHost);
+  const [nativeModuleMissing, setNativeModuleMissing] = useState(false);
+
+  // Hot refs — avoids stale closures inside interval/worklet callbacks
+  const smoothedRef = useRef(0);
+  const rawOpennessRef = useRef(0);
+  const faceDetectedRef = useRef(false);
+  const isTrackingRef = useRef(isTracking);
+  const settingsRef = useRef(settings);
+  const sendCCRef = useRef(sendCC);
+  const cameraRef = useRef<CameraViewType>(null);
+  const isProcessingRef = useRef(false);
+  const captureIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => { isTrackingRef.current = isTracking; }, [isTracking]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+  useEffect(() => { sendCCRef.current = sendCC; }, [sendCC]);
+  useEffect(() => { setHostInput(settings.wifiHost); }, [settings.wifiHost]);
+
+  // ─── Animated values ────────────────────────────────────────────────────
+  const opennessAnim = useSharedValue(0);
+  const meterHeightSV = useSharedValue(300);
+  const settingsY = useSharedValue(SCREEN_HEIGHT);
+  const backdropOpacity = useSharedValue(0);
+
+  // ─── Settings sheet ──────────────────────────────────────────────────────
+  const hideSettings = useCallback(() => setSettingsVisible(false), []);
+
+  const openSettings = useCallback(() => {
+    settingsY.value = SCREEN_HEIGHT;
+    setSettingsVisible(true);
+    setTimeout(() => {
+      settingsY.value = withSpring(0, { damping: 26, stiffness: 320 });
+      backdropOpacity.value = withTiming(1, { duration: 220 });
+    }, 10);
+  }, [settingsY, backdropOpacity]);
+
+  const closeSettings = useCallback(() => {
+    settingsY.value = withSpring(SCREEN_HEIGHT, { damping: 26, stiffness: 320 }, (done) => {
+      if (done) runOnJS(hideSettings)();
+    });
+    backdropOpacity.value = withTiming(0, { duration: 180 });
+  }, [settingsY, backdropOpacity, hideSettings]);
+
+  // ─── Face processing ─────────────────────────────────────────────────────
+  const processFaces = useCallback(
+    (faces: FaceResult[]) => {
+      if (!faces || faces.length === 0) {
+        if (faceDetectedRef.current) {
+          faceDetectedRef.current = false;
+          setFaceDetected(false);
+          opennessAnim.value = withTiming(0, { duration: 300 });
+        }
+        return;
+      }
+
+      const face = faces[0];
+      if (!faceDetectedRef.current) {
+        faceDetectedRef.current = true;
+        setFaceDetected(true);
+        setFaceError(null);
+      }
+
+      const { leftMouthPosition, rightMouthPosition, bottomMouthPosition, mouthPosition } = face;
+      if (!bottomMouthPosition) return;
+
+      // Use mouth corners if available, otherwise fall back to mouthPosition (center)
+      const leftMouth = leftMouthPosition ?? mouthPosition;
+      const rightMouth = rightMouthPosition ?? mouthPosition;
+      if (!leftMouth || !rightMouth) return;
+
+      const cx = (leftMouth.x + rightMouth.x) / 2;
+      const cy = (leftMouth.y + rightMouth.y) / 2;
+      const openDist = Math.sqrt(
+        (bottomMouthPosition.x - cx) ** 2 + (bottomMouthPosition.y - cy) ** 2,
+      );
+      const mouthWidth = Math.sqrt(
+        (rightMouth.x - leftMouth.x) ** 2 + (rightMouth.y - leftMouth.y) ** 2,
+      );
+
+      // Normalize by mouth width for scale-independence (works at any distance)
+      const raw = mouthWidth > 2 ? openDist / mouthWidth : openDist / 20;
+      rawOpennessRef.current = raw;
+
+      const s = settingsRef.current;
+      smoothedRef.current = s.smoothingAlpha * raw + (1 - s.smoothingAlpha) * smoothedRef.current;
+
+      const range = s.calibrationOpen - s.calibrationClosed;
+      const normalized = range > 0.001 ? (smoothedRef.current - s.calibrationClosed) / range : 0;
+      const clamped = Math.max(0, Math.min(1, normalized));
+      const final = s.inverted ? 1 - clamped : clamped;
+
+      opennessAnim.value = withTiming(final, { duration: 30 });
+      sendCCRef.current(Math.round(final * 127));
+    },
+    [opennessAnim],
+  );
+
+  // ─── Periodic frame capture — face detection (expo-camera v17+) ──────────
+  // expo-camera v17 removed onFacesDetected from CameraView.
+  // We capture frames periodically and run FaceDetector.detectFacesAsync.
+  //
+  // CRITICAL FIX: skipProcessing must be false (or omitted) on Android —
+  // when true it skips EXIF rotation, giving the face detector a sideways
+  // image that fails to find faces on almost every real device.
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    if (!permission?.granted || !isTracking) {
+      if (captureIntervalRef.current) {
+        clearInterval(captureIntervalRef.current);
+        captureIntervalRef.current = null;
+      }
+      return;
+    }
+
+    const captureAndDetect = async () => {
+      if (isProcessingRef.current || !cameraRef.current) return;
+      isProcessingRef.current = true;
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.4,          // high enough for facial landmarks
+          // skipProcessing intentionally omitted — default false preserves EXIF rotation
+          exif: false,
+          shutterSound: false,
+        });
+        const result = await FaceDetector.detectFacesAsync(photo.uri, {
+          mode: FaceDetector.FaceDetectorMode.accurate, // more reliable at close range
+          detectLandmarks: FaceDetector.FaceDetectorLandmarks.all,
+          runClassifications: FaceDetector.FaceDetectorClassifications.none,
+        });
+        processFaces(result.faces as FaceResult[]);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('native module') || msg.includes('ExpoFaceDetect')) {
+          setNativeModuleMissing(true);
+          if (captureIntervalRef.current) {
+            clearInterval(captureIntervalRef.current);
+            captureIntervalRef.current = null;
+          }
+        }
+        // Camera busy / transient errors are silently skipped
+      } finally {
+        isProcessingRef.current = false;
+      }
+    };
+
+    // Give the camera 1.5 s to initialize and auto-focus before first capture
+    const startTimer = setTimeout(() => {
+      captureIntervalRef.current = setInterval(captureAndDetect, 100); // ~10 fps
+    }, 1500);
+
+    return () => {
+      clearTimeout(startTimer);
+      if (captureIntervalRef.current) {
+        clearInterval(captureIntervalRef.current);
+        captureIntervalRef.current = null;
+      }
+    };
+  }, [isTracking, permission?.granted, processFaces]);
+
+  // ─── Calibration ─────────────────────────────────────────────────────────
+  const captureCalibration = useCallback(() => {
+    const rawVal = rawOpennessRef.current;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (calibModal === 'closed') {
+      updateSettings({ calibrationClosed: rawVal });
+      if (calibFullMode) setCalibModal('open');
+      else setCalibModal(null);
+    } else if (calibModal === 'open') {
+      updateSettings({ calibrationOpen: rawVal });
+      setCalibModal(null);
+      setCalibFullMode(false);
+    }
+  }, [calibModal, calibFullMode, updateSettings]);
+
+  // ─── Animated styles ─────────────────────────────────────────────────────
+  const meterFillStyle = useAnimatedStyle(() => ({
+    height: opennessAnim.value * meterHeightSV.value,
+    backgroundColor: interpolateColor(
+      opennessAnim.value,
+      [0, 0.35, 0.75, 1.0],
+      ['#00D26A', '#9AD020', '#FF9500', '#FF4455'],
+    ),
+  }));
+
+  const settingsSheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: settingsY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
+  // ─── Layout helpers ──────────────────────────────────────────────────────
+  const topInset = Platform.OS === 'web' ? 67 : insets.top;
+  const bottomInset = Platform.OS === 'web' ? 34 : insets.bottom;
+  const BOTTOM_PANEL_HEIGHT = 190 + bottomInset;
+  const METER_TOP = topInset + 60;
+
+  // ─── Top-bar MIDI chip ───────────────────────────────────────────────────
+  let midiChipLabel = 'No MIDI';
+  let midiChipColor = colors.mutedForeground;
+  if (usbStatus.scanning) {
+    midiChipLabel = 'Scanning…';
+    midiChipColor = '#FF9500';
+  } else if (usbStatus.connected && usbStatus.transmitting) {
+    midiChipLabel = 'USB TX';
+    midiChipColor = colors.primary;
+  } else if (usbStatus.connected) {
+    midiChipLabel = 'USB MIDI';
+    midiChipColor = colors.primary;
+  } else if (wifiStatus === 'connected') {
+    midiChipLabel = 'Wi-Fi MIDI';
+    midiChipColor = '#00BFFF';
+  } else if (wifiStatus === 'connecting') {
+    midiChipLabel = 'Connecting…';
+    midiChipColor = '#FF9500';
+  } else if (wifiStatus === 'error') {
+    midiChipLabel = 'Wi-Fi Error';
+    midiChipColor = colors.destructive;
+  }
+
+  // Wi-Fi connect button helpers (for settings sheet)
+  const wifiConnected = wifiStatus === 'connected' || wifiStatus === 'connecting';
+  const wifiConnColor =
+    wifiStatus === 'connected' ? colors.primary :
+    wifiStatus === 'connecting' ? '#FF9500' :
+    wifiStatus === 'error' ? colors.destructive :
+    colors.mutedForeground;
+  const wifiConnLabel: Record<string, string> = {
+    idle: 'Idle', connecting: 'Connecting…', connected: 'Connected',
+    disconnected: 'Offline', error: 'Error',
+  };
+
+  // ─── Permission screens ──────────────────────────────────────────────────
+  if (!permission) {
+    return (
+      <View style={[s.centered, { backgroundColor: colors.background }]}>
+        <Text style={[s.statusText, { color: colors.mutedForeground }]}>Loading camera…</Text>
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={[s.centered, { backgroundColor: colors.background, paddingTop: topInset }]}>
+        <Ionicons name="camera-outline" size={64} color={colors.primary} />
+        <Text style={[s.permTitle, { color: colors.foreground }]}>Camera Access Required</Text>
+        <Text style={[s.permDesc, { color: colors.mutedForeground }]}>
+          MouthMIDI uses the camera to track your mouth in real time.
+        </Text>
+        <Pressable style={[s.permButton, { backgroundColor: colors.primary }]} onPress={requestPermission}>
+          <Text style={[s.permButtonText, { color: colors.primaryForeground }]}>Enable Camera</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // ─── Main UI ─────────────────────────────────────────────────────────────
+  return (
+    <View style={s.container}>
+
+      {/* Camera */}
+      {Platform.OS !== 'web' ? (
+        <CameraView
+          ref={cameraRef}
+          style={StyleSheet.absoluteFill}
+          facing={settings.facingFront ? 'front' : 'back'}
+        />
+      ) : (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111120' }]}>
+          <Text style={s.webCameraNote}>Camera preview available on device</Text>
+        </View>
+      )}
+
+      {/* Vignette */}
+      <View style={[s.vignette, { pointerEvents: 'none' }]} />
+
+      {/* Native module missing banner */}
+      {nativeModuleMissing && (
+        <View style={[s.nativeBanner, { top: topInset + 8 }]}>
+          <Ionicons name="warning-outline" size={18} color="#FF9500" style={{ marginRight: 8 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={s.nativeBannerTitle}>Development build required</Text>
+            <Text style={s.nativeBannerBody}>
+              Face detection needs a native APK — Expo Go doesn't include this module.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* ── Top Status Bar ── */}
+      <View style={[s.topBar, { paddingTop: topInset + 8 }]}>
+        {/* Face status */}
+        <View style={s.chip}>
+          <View
+            style={[s.dot, {
+              backgroundColor: faceDetected ? colors.primary : colors.mutedForeground,
+            }]}
+          />
+          <Text style={[s.chipText, { color: faceDetected ? colors.foreground : colors.mutedForeground }]}>
+            {!isTracking ? 'Paused' : faceDetected ? 'Face ✓' : 'No Face'}
+          </Text>
+        </View>
+
+        {/* CC / Channel info */}
+        <View style={s.chip}>
+          <Text style={[s.chipText, { color: colors.mutedForeground }]}>
+            CC{settings.ccNumber} · CH{settings.midiChannel}{settings.inverted ? ' · INV' : ''}
+          </Text>
+        </View>
+
+        {/* MIDI output status */}
+        <View style={[s.chip, { justifyContent: 'flex-end' }]}>
+          <View style={[s.dot, { backgroundColor: midiChipColor }]} />
+          <Text style={[s.chipText, { color: midiChipColor }]}>{midiChipLabel}</Text>
+        </View>
+      </View>
+
+      {/* ── Left Mouth Meter ── */}
+      <View
+        style={[s.meterOuter, { top: METER_TOP, bottom: BOTTOM_PANEL_HEIGHT + 10 }]}
+        onLayout={(e) => { meterHeightSV.value = e.nativeEvent.layout.height; }}
+      >
+        {[0.25, 0.5, 0.75].map((frac) => (
+          <View
+            key={frac}
+            style={[s.meterTick, { bottom: `${frac * 100}%` as `${number}%` }]}
+          />
+        ))}
+        <View style={s.meterFillWrapper}>
+          <Animated.View style={[s.meterFill, meterFillStyle]} />
+        </View>
+      </View>
+
+      {/* Meter labels */}
+      <View style={[s.meterLabels, { top: METER_TOP, bottom: BOTTOM_PANEL_HEIGHT + 10 }]}>
+        <Text style={[s.meterLabel, { color: colors.mutedForeground }]}>127</Text>
+        <Text style={[s.meterLabel, { color: colors.mutedForeground }]}>0</Text>
+      </View>
+
+      {/* ── Bottom Panel ── */}
+      <View style={[s.bottomPanel, { paddingBottom: bottomInset + 20, borderTopColor: colors.border }]}>
+        {/* CC Value */}
+        <View style={s.ccDisplay}>
+          <Text style={[s.ccLabel, { color: colors.mutedForeground }]}>CC VALUE</Text>
+          <Text style={[s.ccValue, {
+            color: isTracking && faceDetected ? colors.primary : colors.mutedForeground,
+          }]}>
+            {String(lastCCValue).padStart(3, '0')}
+          </Text>
+        </View>
+
+        {/* Controls */}
+        <View style={s.controls}>
+          <Pressable
+            style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              updateSettings({ facingFront: !settings.facingFront });
+            }}
+          >
+            <Ionicons name="camera-reverse-outline" size={22} color={colors.foreground} />
+          </Pressable>
+
+          <Pressable
+            style={[s.mainBtn, {
+              backgroundColor: isTracking ? colors.primary : 'rgba(255,255,255,0.12)',
+            }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              const next = !isTracking;
+              setIsTracking(next);
+              if (!next) {
+                setFaceDetected(false);
+                faceDetectedRef.current = false;
+                opennessAnim.value = withTiming(0, { duration: 300 });
+              }
+            }}
+          >
+            <Ionicons
+              name={isTracking ? 'pause' : 'play'}
+              size={30}
+              color={isTracking ? '#000' : colors.foreground}
+            />
+          </Pressable>
+
+          <Pressable
+            style={[s.iconBtn, { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              openSettings();
+            }}
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.foreground} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* ── Settings Sheet ── */}
+      {settingsVisible && (
+        <>
+          <Animated.View style={[s.backdrop, backdropStyle, { pointerEvents: 'auto' }]}>
+            <Pressable style={StyleSheet.absoluteFill} onPress={closeSettings} />
+          </Animated.View>
+
+          <Animated.View style={[s.sheet, { paddingBottom: bottomInset + 20, borderColor: colors.border }, settingsSheetStyle]}>
+            <View style={[s.sheetHandle, { backgroundColor: colors.border }]} />
+
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 48 }}>
+
+              {/* ── USB MIDI ── */}
+              <SectionHeader label="USB MIDI" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                {/* Status row */}
+                <View style={[s.settingsRow, { borderTopColor: 'transparent' }]}>
+                  <View style={s.settingsRowLeft}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                      <View style={[s.dot, {
+                        width: 9, height: 9, borderRadius: 5,
+                        backgroundColor:
+                          usbStatus.scanning ? '#FF9500' :
+                          usbStatus.connected ? colors.primary :
+                          usbStatus.available ? colors.mutedForeground :
+                          colors.destructive,
+                      }]} />
+                      <Text style={[s.settingsLabel, { color: colors.foreground }]}>
+                        {usbStatus.scanning ? 'Scanning…' :
+                         usbStatus.connected ? usbStatus.portName :
+                         usbStatus.available ? 'No Device Found' :
+                         'MIDI Unavailable'}
+                      </Text>
+                    </View>
+                    {usbStatus.connected && (
+                      <Text style={[s.settingsHint, { color: colors.mutedForeground }]}>
+                        {usbStatus.portCount} port{usbStatus.portCount !== 1 ? 's' : ''}
+                        {usbStatus.transmitting ? ' · TX active' : ''}
+                      </Text>
+                    )}
+                    {usbStatus.error && !usbStatus.connected && (
+                      <Text style={[s.settingsHint, { color: colors.destructive }]}>
+                        {usbStatus.error}
+                      </Text>
+                    )}
+                  </View>
+                  <Pressable
+                    style={[s.actionBtn, {
+                      backgroundColor: usbStatus.scanning ? colors.secondary : colors.primary,
+                      opacity: usbStatus.scanning ? 0.5 : 1,
+                    }]}
+                    onPress={() => {
+                      if (!usbStatus.scanning) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        refreshUsb();
+                      }
+                    }}
+                    disabled={usbStatus.scanning}
+                  >
+                    <Text style={[s.actionBtnText, {
+                      color: usbStatus.scanning ? colors.mutedForeground : colors.primaryForeground,
+                    }]}>
+                      {usbStatus.scanning ? 'Scanning' : 'Refresh'}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                {/* USB instructions */}
+                <View style={[s.infoBox, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+                  <Text style={[s.infoTitle, { color: colors.foreground }]}>How to enable USB MIDI</Text>
+                  <Text style={[s.infoText, { color: colors.mutedForeground }]}>
+                    {'1. Connect phone to computer via USB cable.\n'}
+                    {'2. Swipe down → tap "USB charging this device".\n'}
+                    {'3. Select MIDI.\n'}
+                    {'4. Tap Refresh above — the port should appear.\n\n'}
+                    {'DAW receives standard MIDI CC on the selected channel.\n'}
+                    {'No bridge software required.'}
+                  </Text>
+                </View>
+              </SettingsCard>
+
+              {/* ── MIDI Output Settings ── */}
+              <SectionHeader label="MIDI OUTPUT" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                <SettingsRow label="CC Number" hint="0–127" borderColor="transparent" foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Stepper
+                    value={settings.ccNumber}
+                    onDecrement={() => updateSettings({ ccNumber: Math.max(0, settings.ccNumber - 1) })}
+                    onIncrement={() => updateSettings({ ccNumber: Math.min(127, settings.ccNumber + 1) })}
+                    stepperBg={colors.secondary} foreground={colors.foreground}
+                  />
+                </SettingsRow>
+                <SettingsRow label="MIDI Channel" hint="1–16" borderColor={colors.border} foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Stepper
+                    value={settings.midiChannel}
+                    onDecrement={() => updateSettings({ midiChannel: Math.max(1, settings.midiChannel - 1) })}
+                    onIncrement={() => updateSettings({ midiChannel: Math.min(16, settings.midiChannel + 1) })}
+                    stepperBg={colors.secondary} foreground={colors.foreground}
+                  />
+                </SettingsRow>
+                <SettingsRow label="Invert" hint="127 when closed, 0 when open" borderColor={colors.border} foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Switch
+                    value={settings.inverted}
+                    onValueChange={(v) => updateSettings({ inverted: v })}
+                    trackColor={{ false: colors.border, true: colors.primary }}
+                    thumbColor="#fff"
+                  />
+                </SettingsRow>
+              </SettingsCard>
+
+              {/* ── Tracking ── */}
+              <SectionHeader label="TRACKING" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                <SettingsRow
+                  label="Smoothing"
+                  hint={settings.smoothingAlpha < 0.15 ? 'Very smooth / slow' : settings.smoothingAlpha < 0.45 ? 'Balanced' : 'Fast / raw'}
+                  borderColor="transparent" foreground={colors.foreground} mutedForeground={colors.mutedForeground}
+                >
+                  <Stepper
+                    value={parseFloat(settings.smoothingAlpha.toFixed(2))}
+                    displayValue={settings.smoothingAlpha.toFixed(2)}
+                    onDecrement={() => updateSettings({ smoothingAlpha: parseFloat(Math.max(0.05, settings.smoothingAlpha - 0.05).toFixed(2)) })}
+                    onIncrement={() => updateSettings({ smoothingAlpha: parseFloat(Math.min(1.0, settings.smoothingAlpha + 0.05).toFixed(2)) })}
+                    stepperBg={colors.secondary} foreground={colors.foreground}
+                  />
+                </SettingsRow>
+                <SettingsRow label="Dead Zone" hint="Min CC change before output fires" borderColor={colors.border} foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Stepper
+                    value={settings.deadzone}
+                    onDecrement={() => updateSettings({ deadzone: Math.max(0, settings.deadzone - 1) })}
+                    onIncrement={() => updateSettings({ deadzone: Math.min(20, settings.deadzone + 1) })}
+                    stepperBg={colors.secondary} foreground={colors.foreground}
+                  />
+                </SettingsRow>
+              </SettingsCard>
+
+              {/* ── Wi-Fi MIDI ── */}
+              <SectionHeader label="WI-FI MIDI (OPTIONAL)" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                <SettingsRow label="Host IP" hint="Computer's local IP" borderColor="transparent" foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <TextInput
+                    style={[s.textInput, { color: colors.foreground, backgroundColor: colors.secondary, borderColor: colors.border }]}
+                    value={hostInput}
+                    onChangeText={setHostInput}
+                    onBlur={() => updateSettings({ wifiHost: hostInput })}
+                    placeholder="192.168.x.x"
+                    placeholderTextColor={colors.mutedForeground}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="decimal-pad"
+                  />
+                </SettingsRow>
+                <SettingsRow label="Port" hint="Default: 3000" borderColor={colors.border} foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Stepper
+                    value={settings.wifiPort}
+                    onDecrement={() => updateSettings({ wifiPort: Math.max(1024, settings.wifiPort - 100) })}
+                    onIncrement={() => updateSettings({ wifiPort: Math.min(65535, settings.wifiPort + 100) })}
+                    stepperBg={colors.secondary} foreground={colors.foreground}
+                  />
+                </SettingsRow>
+                <View style={[s.connectRow, { borderTopColor: colors.border }]}>
+                  <View style={s.chip}>
+                    <View style={[s.dot, { backgroundColor: wifiConnColor }]} />
+                    <Text style={[s.chipText, { color: wifiConnColor }]}>{wifiConnLabel[wifiStatus]}</Text>
+                  </View>
+                  {wifiConnected ? (
+                    <Pressable
+                      style={[s.actionBtn, { backgroundColor: colors.destructive }]}
+                      onPress={() => { disconnectWifi(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    >
+                      <Text style={[s.actionBtnText, { color: '#fff' }]}>Disconnect</Text>
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      style={[s.actionBtn, { backgroundColor: hostInput.trim() ? colors.primary : colors.secondary, opacity: hostInput.trim() ? 1 : 0.5 }]}
+                      onPress={() => { updateSettings({ wifiHost: hostInput }); connectWifi(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); }}
+                      disabled={!hostInput.trim()}
+                    >
+                      <Text style={[s.actionBtnText, { color: hostInput.trim() ? colors.primaryForeground : colors.mutedForeground }]}>Connect</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </SettingsCard>
+
+              {/* ── Calibration ── */}
+              <SectionHeader label="CALIBRATION" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                <SettingsRow label="Closed (min)" hint={`Raw: ${settings.calibrationClosed.toFixed(3)}`} borderColor="transparent" foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Pressable style={[s.actionBtn, { backgroundColor: colors.secondary }]} onPress={() => { setCalibFullMode(false); setCalibModal('closed'); closeSettings(); }}>
+                    <Text style={[s.actionBtnText, { color: colors.foreground }]}>Set</Text>
+                  </Pressable>
+                </SettingsRow>
+                <SettingsRow label="Open (max)" hint={`Raw: ${settings.calibrationOpen.toFixed(3)}`} borderColor={colors.border} foreground={colors.foreground} mutedForeground={colors.mutedForeground}>
+                  <Pressable style={[s.actionBtn, { backgroundColor: colors.secondary }]} onPress={() => { setCalibFullMode(false); setCalibModal('open'); closeSettings(); }}>
+                    <Text style={[s.actionBtnText, { color: colors.foreground }]}>Set</Text>
+                  </Pressable>
+                </SettingsRow>
+                <View style={[s.fullCalibRow, { borderTopColor: colors.border }]}>
+                  <Pressable
+                    style={[s.fullCalibBtn, { backgroundColor: colors.primary }]}
+                    onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setCalibFullMode(true); setCalibModal('closed'); closeSettings(); }}
+                  >
+                    <Ionicons name="pulse-outline" size={16} color="#000" style={{ marginRight: 8 }} />
+                    <Text style={[s.actionBtnText, { color: '#000' }]}>Start Full Calibration</Text>
+                  </Pressable>
+                </View>
+              </SettingsCard>
+
+              {/* ── Diagnostics ── */}
+              <SectionHeader label="DIAGNOSTICS" color={colors.primary} />
+              <SettingsCard borderColor={colors.border} cardBg={colors.card}>
+                <DiagRow icon="camera" label="Camera" value={permission?.granted ? 'Active' : 'No Permission'} ok={permission?.granted ?? false} borderColor="transparent" colors={colors} />
+                <DiagRow icon="scan" label="Face Detected" value={faceDetected ? 'Yes' : 'No'} ok={faceDetected} borderColor={colors.border} colors={colors} />
+                <DiagRow
+                  icon="musical-notes"
+                  label="USB MIDI"
+                  value={usbStatus.scanning ? 'Scanning…' : usbStatus.connected ? `${usbStatus.portName} (${usbStatus.portCount} port${usbStatus.portCount !== 1 ? 's' : ''})` : usbStatus.available ? 'No device — select MIDI in USB settings' : usbStatus.error ?? 'Unavailable'}
+                  ok={usbStatus.connected}
+                  borderColor={colors.border}
+                  colors={colors}
+                />
+                <DiagRow
+                  icon="wifi"
+                  label="Wi-Fi MIDI"
+                  value={wifiConnLabel[wifiStatus]}
+                  ok={wifiStatus === 'connected'}
+                  borderColor={colors.border}
+                  colors={colors}
+                />
+                <DiagRow
+                  icon="send"
+                  label="Active Output"
+                  value={activeOutput === 'usb' ? 'USB MIDI' : activeOutput === 'wifi' ? 'Wi-Fi MIDI' : 'None'}
+                  ok={activeOutput !== 'none'}
+                  borderColor={colors.border}
+                  colors={colors}
+                />
+              </SettingsCard>
+
+            </ScrollView>
+          </Animated.View>
+        </>
+      )}
+
+      {/* ── Calibration Overlay ── */}
+      {calibModal !== null && (
+        <View style={s.calibOverlay}>
+          <View style={[s.calibCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[s.calibIconBg, { backgroundColor: `${colors.primary}18` }]}>
+              <Ionicons
+                name={calibModal === 'closed' ? 'remove-circle-outline' : 'ellipse-outline'}
+                size={52}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={[s.calibTitle, { color: colors.foreground }]}>
+              {calibModal === 'closed' ? 'Set Closed Position' : 'Set Open Position'}
+            </Text>
+            <Text style={[s.calibDesc, { color: colors.mutedForeground }]}>
+              {calibModal === 'closed'
+                ? 'Keep your mouth completely\nclosed, then press Capture.'
+                : 'Open your mouth as wide as\npossible, then press Capture.'}
+            </Text>
+            {calibFullMode && (
+              <View style={s.calibStepRow}>
+                <View style={[s.calibStepDot, { backgroundColor: colors.primary }]} />
+                <View style={[s.calibStepLine, { backgroundColor: calibModal === 'open' ? colors.primary : colors.border }]} />
+                <View style={[s.calibStepDot, { backgroundColor: calibModal === 'open' ? colors.primary : colors.border }]} />
+              </View>
+            )}
+            <Pressable style={[s.calibCaptureBtn, { backgroundColor: colors.primary }]} onPress={captureCalibration}>
+              <Ionicons name="checkmark-circle" size={20} color="#000" style={{ marginRight: 8 }} />
+              <Text style={s.calibCaptureBtnText}>Capture</Text>
+            </Pressable>
+            <Pressable onPress={() => { setCalibModal(null); setCalibFullMode(false); }}>
+              <Text style={[s.calibCancelText, { color: colors.mutedForeground }]}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionHeader({ label, color }: { label: string; color: string }) {
+  return <Text style={[s.sectionHeader, { color }]}>{label}</Text>;
+}
+
+function SettingsCard({ children, borderColor, cardBg }: { children: React.ReactNode; borderColor: string; cardBg: string }) {
+  return <View style={[s.settingsCard, { borderColor, backgroundColor: cardBg }]}>{children}</View>;
+}
+
+function SettingsRow({ label, hint, children, borderColor, foreground, mutedForeground }: {
+  label: string; hint?: string; children: React.ReactNode;
+  borderColor: string; foreground: string; mutedForeground: string;
+}) {
+  return (
+    <View style={[s.settingsRow, { borderTopColor: borderColor }]}>
+      <View style={s.settingsRowLeft}>
+        <Text style={[s.settingsLabel, { color: foreground }]}>{label}</Text>
+        {hint ? <Text style={[s.settingsHint, { color: mutedForeground }]}>{hint}</Text> : null}
+      </View>
+      {children}
+    </View>
+  );
+}
+
+function Stepper({ value, displayValue, onDecrement, onIncrement, stepperBg, foreground }: {
+  value: number; displayValue?: string;
+  onDecrement: () => void; onIncrement: () => void;
+  stepperBg: string; foreground: string;
+}) {
+  return (
+    <View style={s.stepper}>
+      <Pressable style={[s.stepBtn, { backgroundColor: stepperBg }]} onPress={onDecrement}>
+        <Ionicons name="remove" size={16} color={foreground} />
+      </Pressable>
+      <Text style={[s.stepValue, { color: foreground }]}>{displayValue ?? String(value)}</Text>
+      <Pressable style={[s.stepBtn, { backgroundColor: stepperBg }]} onPress={onIncrement}>
+        <Ionicons name="add" size={16} color={foreground} />
+      </Pressable>
+    </View>
+  );
+}
+
+function DiagRow({ icon, label, value, ok, borderColor, colors }: {
+  icon: string; label: string; value: string; ok: boolean;
+  borderColor: string; colors: ReturnType<typeof import('@/hooks/useColors').useColors>;
+}) {
+  return (
+    <View style={[s.diagRow, { borderTopColor: borderColor }]}>
+      <Ionicons name={icon as any} size={15} color={ok ? colors.primary : colors.mutedForeground} style={{ marginRight: 10 }} />
+      <View style={{ flex: 1 }}>
+        <Text style={[s.settingsLabel, { color: colors.foreground, fontSize: 13 }]}>{label}</Text>
+        <Text style={[s.settingsHint, { color: ok ? colors.primary : colors.mutedForeground, marginTop: 1 }]} numberOfLines={2}>{value}</Text>
+      </View>
+      <View style={[s.diagDot, { backgroundColor: ok ? colors.primary : colors.mutedForeground }]} />
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0A0A0F' },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 },
+  statusText: { fontSize: 15, fontFamily: 'Inter_400Regular' },
+  webCameraNote: { color: '#8888A8', fontFamily: 'Inter_400Regular', fontSize: 14, position: 'absolute', bottom: '50%', alignSelf: 'center' },
+  permTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', textAlign: 'center' },
+  permDesc: { fontSize: 15, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 22 },
+  permButton: { paddingHorizontal: 36, paddingVertical: 14, borderRadius: 12 },
+  permButtonText: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
+  vignette: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.22)' },
+  // ── Native module banner
+  nativeBanner: { position: 'absolute', left: 12, right: 12, backgroundColor: 'rgba(20,14,0,0.94)', borderColor: '#FF9500', borderWidth: 1, borderRadius: 12, flexDirection: 'row', alignItems: 'flex-start', padding: 14, zIndex: 100 },
+  nativeBannerTitle: { color: '#FF9500', fontSize: 13, fontFamily: 'Inter_700Bold', marginBottom: 3 },
+  nativeBannerBody: { color: '#C8A86B', fontSize: 12, fontFamily: 'Inter_400Regular', lineHeight: 17 },
+  // ── Top bar
+  topBar: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 10, backgroundColor: 'rgba(10,10,15,0.75)', gap: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
+  chipText: { fontSize: 11, fontFamily: 'Inter_500Medium' },
+  // ── Meter
+  meterOuter: { position: 'absolute', left: 12, width: 14, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', overflow: 'visible' },
+  meterTick: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.18)' },
+  meterFillWrapper: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 7 },
+  meterFill: { left: 0, right: 0, borderRadius: 7 },
+  meterLabels: { position: 'absolute', left: 30, justifyContent: 'space-between', alignItems: 'flex-start' },
+  meterLabel: { fontSize: 9, fontFamily: 'Inter_400Regular' },
+  // ── Bottom panel
+  bottomPanel: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(10,10,15,0.93)', paddingTop: 18, paddingHorizontal: 24, borderTopWidth: 1 },
+  ccDisplay: { alignItems: 'center', marginBottom: 14 },
+  ccLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2.5, marginBottom: 2 },
+  ccValue: { fontSize: 62, fontFamily: 'Inter_700Bold', letterSpacing: -2, lineHeight: 68 },
+  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20 },
+  iconBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  mainBtn: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
+  // ── Settings sheet
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.65)' },
+  sheet: { position: 'absolute', bottom: 0, left: 0, right: 0, height: SCREEN_HEIGHT * 0.87, backgroundColor: '#0F0F1C', borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderBottomWidth: 0, paddingHorizontal: 16, paddingTop: 10 },
+  sheetHandle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 18 },
+  sectionHeader: { fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 1.8, marginTop: 22, marginBottom: 8, paddingHorizontal: 4 },
+  settingsCard: { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, gap: 12 },
+  settingsRowLeft: { flex: 1 },
+  settingsLabel: { fontSize: 15, fontFamily: 'Inter_500Medium' },
+  settingsHint: { fontSize: 12, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  stepBtn: { width: 32, height: 32, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  stepValue: { fontSize: 15, fontFamily: 'Inter_600SemiBold', minWidth: 44, textAlign: 'center' },
+  textInput: { height: 36, borderRadius: 9, paddingHorizontal: 10, fontSize: 14, fontFamily: 'Inter_400Regular', flex: 1, maxWidth: 180, borderWidth: 1 },
+  connectRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, gap: 12 },
+  actionBtn: { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 9, alignItems: 'center' },
+  actionBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold' },
+  fullCalibRow: { paddingHorizontal: 12, paddingVertical: 12, borderTopWidth: 1 },
+  fullCalibBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 11, borderRadius: 10 },
+  infoBox: { margin: 12, padding: 14, borderRadius: 10, borderWidth: 1 },
+  infoTitle: { fontSize: 13, fontFamily: 'Inter_600SemiBold', marginBottom: 7 },
+  infoText: { fontSize: 12, fontFamily: 'Inter_400Regular', lineHeight: 19 },
+  // ── Diagnostics
+  diagRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11, borderTopWidth: 1 },
+  diagDot: { width: 8, height: 8, borderRadius: 4, marginLeft: 8 },
+  // ── Calibration overlay
+  calibOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.88)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  calibCard: { width: '100%', maxWidth: 360, padding: 28, borderRadius: 22, borderWidth: 1, alignItems: 'center', gap: 14 },
+  calibIconBg: { width: 88, height: 88, borderRadius: 44, alignItems: 'center', justifyContent: 'center' },
+  calibTitle: { fontSize: 22, fontFamily: 'Inter_700Bold', textAlign: 'center' },
+  calibDesc: { fontSize: 15, fontFamily: 'Inter_400Regular', textAlign: 'center', lineHeight: 23 },
+  calibStepRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  calibStepDot: { width: 12, height: 12, borderRadius: 6 },
+  calibStepLine: { width: 40, height: 2, borderRadius: 1 },
+  calibCaptureBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 14, borderRadius: 14, width: '100%', marginTop: 4 },
+  calibCaptureBtnText: { fontSize: 17, fontFamily: 'Inter_700Bold', color: '#000' },
+  calibCancelText: { fontSize: 14, fontFamily: 'Inter_400Regular', paddingVertical: 4 },
+});

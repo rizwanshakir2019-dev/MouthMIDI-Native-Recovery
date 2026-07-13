@@ -1,0 +1,48 @@
+{
+  "id": "a2b6d8a8-54cc-4d2d-808a-73f92d77b114",
+  "status": "ERRORED",
+  "platform": "ANDROID",
+  "error": {
+    "errorCode": "EAS_BUILD_UNKNOWN_GRADLE_ERROR",
+    "message": "Gradle build failed with unknown error. See logs for the \"Run gradlew\" phase for more information."
+  },
+  "artifacts": {},
+  "fingerprint": {
+    "id": "019f4a3d-61bc-77c0-ba10-01a8032a89d9",
+    "hash": "0dd2d92815ab3c469bbfe1a23640f4b409484b30"
+  },
+  "initiatingActor": {
+    "id": "0f5d51e5-ca41-4c55-be90-78d8156f37e2",
+    "displayName": "riz1shakir"
+  },
+  "logFiles": [
+    "https://storage.googleapis.com/eas-workflows-production/logs/ae5cfb06-b3d7-4f76-b3ec-eb4ff513547f/a2b6d8a8-54cc-4d2d-808a-73f92d77b114/2026-07-10T04%3A16%3A10Z-9825310a-1a80-422a-859c-20ee4450b2df.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260710%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260710T045346Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=3f4d4273ca56023bea15b0482ff0dcbcc4e792ff2c9fc038a225b2ad445daa46d8ce999bfd4253a3b3e54a2247c5dd4c737d2f65b4649d359f331d0d2d65e68db48fcca90ff57a5dbf3f3e199ee94e7bab019bcff1e3bc64939f0d5a8bf3ba871ea54fe86bec1a5241c6eaec47521abdeaffe94d0dcd145f9633e8ec8624f40853a6372f9bd68af1df22c38ac40d8189f99e652295286d1985518784f995946915f24465bbd29f49309837399cbdeb44e5c0e77787cd9b6cee4f89437400e6acab3e82825534970bfde258e1515f9f2a5951fb138bf40f5bc74109facc59e773efffff898be875c5a4585ef9e42aed1d9c0436df592f959f239281cf46c1b739"
+  ],
+  "project": {
+    "id": "ae5cfb06-b3d7-4f76-b3ec-eb4ff513547f",
+    "name": "mobile",
+    "slug": "mobile",
+    "ownerAccount": {
+      "id": "2b93aa00-9a50-4041-95df-bbf958a89ff0",
+      "name": "riz1shakir"
+    }
+  },
+  "distribution": "INTERNAL",
+  "buildProfile": "development",
+  "sdkVersion": "54.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "0226b9f5f38889c3c1f39301eb05c64b7925d771",
+  "gitCommitMessage": "Recover standalone Mouth MIDI project from Replit export",
+  "priority": "NORMAL",
+  "createdAt": "2026-07-10T04:16:04.507Z",
+  "updatedAt": "2026-07-10T04:19:35.714Z",
+  "completedAt": "2026-07-10T04:19:35.515Z",
+  "expirationDate": "2026-07-24T04:16:04.535Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 5683,
+    "buildQueueTime": 4827,
+    "buildDuration": 200498
+  }
+}
