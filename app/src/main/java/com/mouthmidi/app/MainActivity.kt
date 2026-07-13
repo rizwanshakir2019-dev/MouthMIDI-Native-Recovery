@@ -2,6 +2,7 @@ package com.mouthmidi.app
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -34,6 +35,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var cameraButton: Button
     private lateinit var startButton: Button
+
+    private lateinit var settingsButton: Button
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -99,6 +102,8 @@ class MainActivity : AppCompatActivity() {
         cameraButton = findViewById(R.id.cameraButton)
         startButton = findViewById(R.id.startButton)
 
+        settingsButton = findViewById(R.id.settingsButton)
+
         startButton.text = "■"
 
         cameraButton.setOnClickListener {
@@ -109,6 +114,10 @@ class MainActivity : AppCompatActivity() {
             trackingEnabled = !trackingEnabled
             startButton.text =
                 if (trackingEnabled) "■" else "▶"
+        }
+
+        settingsButton.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
 

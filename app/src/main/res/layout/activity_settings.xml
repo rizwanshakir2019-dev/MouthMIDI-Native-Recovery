@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PRESET"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            android:background="#666666"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current Preset"/>
+
+        <Spinner
+            android:id="@+id/presetSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+
+        <Button
+            android:id="@+id/savePresetButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Preset"
+            android:layout_marginTop="12dp"/>
+
+        <Button
+            android:id="@+id/loadPresetButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load Preset"/>
+
+        <Switch
+            android:id="@+id/flashlightSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Flashlight On/Off (for rear camera)"
+            android:layout_marginTop="24dp"/>
+
+        <Switch
+            android:id="@+id/keepScreenAwakeSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Keep Screen Awake"/>
+
+    </LinearLayout>
+
+</ScrollView>
