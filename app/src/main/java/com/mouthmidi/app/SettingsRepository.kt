@@ -12,6 +12,13 @@ class SettingsRepository(
             Context.MODE_PRIVATE
         )
 
+
+    private val presetPrefs =
+        context.getSharedPreferences(
+            "mouthmidi_presets",
+            Context.MODE_PRIVATE
+        )
+
     fun load(): MouthMidiSettings {
 
         return MouthMidiSettings(
@@ -189,4 +196,94 @@ class SettingsRepository(
 
             .apply()
     }
+
+
+    fun savePreset(
+        name: String,
+        settings: PresetSettings
+    ) {
+
+        presetPrefs.edit()
+
+            .putFloat("${name}_jawClosedCalibration", settings.jawClosedCalibration)
+            .putFloat("${name}_jawOpenCalibration", settings.jawOpenCalibration)
+
+            .putInt("${name}_minCC", settings.minCC)
+            .putInt("${name}_maxCC", settings.maxCC)
+
+            .putInt("${name}_midiCC", settings.midiCC)
+            .putInt("${name}_midiChannel", settings.midiChannel)
+
+            .putFloat("${name}_smoothing", settings.smoothing)
+            .putFloat("${name}_sensitivity", settings.sensitivity)
+            .putFloat("${name}_deadZone", settings.deadZone)
+
+            .putBoolean("${name}_invert", settings.invert)
+            .putBoolean("${name}_holdLastValue", settings.holdLastValue)
+
+            .putString("${name}_themeColor", settings.themeColor)
+
+            .putBoolean("${name}_exists", true)
+
+            .apply()
+    }
+
+
+    fun loadPreset(
+        name: String
+    ): PresetSettings {
+
+        return PresetSettings(
+
+            jawClosedCalibration =
+                presetPrefs.getFloat("${name}_jawClosedCalibration",0.01f),
+
+            jawOpenCalibration =
+                presetPrefs.getFloat("${name}_jawOpenCalibration",0.80f),
+
+            minCC =
+                presetPrefs.getInt("${name}_minCC",0),
+
+            maxCC =
+                presetPrefs.getInt("${name}_maxCC",127),
+
+            midiCC =
+                presetPrefs.getInt("${name}_midiCC",1),
+
+            midiChannel =
+                presetPrefs.getInt("${name}_midiChannel",1),
+
+            smoothing =
+                presetPrefs.getFloat("${name}_smoothing",0f),
+
+            sensitivity =
+                presetPrefs.getFloat("${name}_sensitivity",1f),
+
+            deadZone =
+                presetPrefs.getFloat("${name}_deadZone",0f),
+
+            invert =
+                presetPrefs.getBoolean("${name}_invert",false),
+
+            holdLastValue =
+                presetPrefs.getBoolean("${name}_holdLastValue",true),
+
+            themeColor =
+                presetPrefs.getString("${name}_themeColor","orange")
+                    ?: "orange"
+        )
+    }
+
+
+    fun getPresetNames(): List<String> {
+
+        return presetPrefs.all.keys
+            .filter {
+                it.endsWith("_exists")
+            }
+            .map {
+                it.removeSuffix("_exists")
+            }
+    }
+
 }

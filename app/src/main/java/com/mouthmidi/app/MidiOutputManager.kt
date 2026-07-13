@@ -17,12 +17,43 @@ class MidiOutputManager(
     private var midiDevice: MidiDevice? = null
     private var inputPort: MidiInputPort? = null
 
+    private val handler = Handler(Looper.getMainLooper())
+
+    private val monitorRunnable = object : Runnable {
+        override fun run() {
+
+            val manager = midiManager
+
+            if (manager != null) {
+
+                val usbPresent =
+                    manager.devices.any {
+                        it.type == MidiDeviceInfo.TYPE_USB
+                    }
+
+                if (!usbPresent && connected) {
+
+                    Log.d(
+                        "MouthMIDI",
+                        "MIDI watchdog: device missing"
+                    )
+
+                    disconnect()
+                }
+            }
+
+            handler.postDelayed(this, 1000)
+        }
+    }
+
     private val deviceCallback =
         object : MidiManager.DeviceCallback() {
 
             override fun onDeviceAdded(device: MidiDeviceInfo) {
                 Log.d("MouthMIDI", "MIDI device added")
                 scanDevices()
+
+          handler.post(monitorRunnable)
             }
 
             override fun onDeviceRemoved(device: MidiDeviceInfo) {
@@ -55,10 +86,14 @@ class MidiOutputManager(
         )
 
         scanDevices()
+
+          handler.post(monitorRunnable)
     }
 
 
     private fun scanDevices() {
+
+          handler.post(monitorRunnable)
 
         val manager = midiManager ?: return
 
@@ -130,13 +165,13 @@ class MidiOutputManager(
 
         midiDevice?.close()
         midiDevice = null
-
-        midiManager = null
     }
 
 
     fun cleanup() {
 
+
+          handler.removeCallbacks(monitorRunnable)
         midiManager?.unregisterDeviceCallback(
             deviceCallback
         )

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView android:id="@+id/settingsScrollView" xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -81,86 +81,150 @@
             android:text="Jaw Closed Calibration"
             android:layout_marginTop="24dp"/>
 
-        <EditText
+        <TextView
             android:id="@+id/jawClosedCalibrationInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:text="0.01"/>
+            android:text="0.01"
+            android:textSize="18sp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Jaw Open Calibration"/>
 
-        <EditText
+        <TextView
             android:id="@+id/jawOpenCalibrationInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:text="0.80"/>
+            android:text="0.80"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/calibrationStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="16sp"
+            android:layout_marginTop="12dp"/>
+
+        <Button
+            android:id="@+id/recalibrateButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Recalibrate"
+            android:layout_marginTop="12dp"/>
+
+
+        <Button
+            android:id="@+id/defaultCalibrationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="↺ Default Calibration"
+            android:layout_marginTop="8dp"/>
+
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PRESET"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
+        
+
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Smoothing"/>
 
-        <EditText
-            android:id="@+id/smoothingInput"
+        <SeekBar
+            android:id="@+id/smoothingSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:text="0.0"/>
+            android:max="100"/>
+
+        <TextView
+            android:id="@+id/smoothingValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.00"/>
+
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Minimum CC"/>
 
-        <EditText
-            android:id="@+id/minCCInput"
+        <SeekBar
+            android:id="@+id/minCCSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
+            android:max="127"/>
+
+        <TextView
+            android:id="@+id/minCCValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="0"/>
+
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Maximum CC"/>
 
-        <EditText
-            android:id="@+id/maxCCInput"
+        <SeekBar
+            android:id="@+id/maxCCSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
+            android:max="127"/>
+
+        <TextView
+            android:id="@+id/maxCCValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="127"/>
 
 
-          <TextView
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Sensitivity"
-              android:layout_marginTop="12dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sensitivity"
+            android:layout_marginTop="12dp"/>
 
-          <EditText
-              android:id="@+id/sensitivityInput"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:inputType="numberDecimal"
-              android:text="1.0"/>
+        <SeekBar
+            android:id="@+id/sensitivitySeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"/>
 
-          <TextView
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Dead Zone"/>
+        <TextView
+            android:id="@+id/sensitivityValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.00"/>
 
-          <EditText
-              android:id="@+id/deadZoneInput"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:inputType="numberDecimal"
-              android:text="0.0"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dead Zone"/>
+
+        <SeekBar
+            android:id="@+id/deadZoneSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="50"/>
+
+        <TextView
+            android:id="@+id/deadZoneValueText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.00"/>
+
 
           <Switch
               android:id="@+id/invertSwitch"
@@ -190,6 +254,80 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Keep Screen Awake"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="THEME COLOR"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
+        <LinearLayout
+            android:id="@+id/themeColorContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/themeOrangeButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:text="🟠"/>
+
+            <Button
+                android:id="@+id/themeYellowButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:text="🟡"/>
+
+            <Button
+                android:id="@+id/themeGreenButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:text="🟢"/>
+
+            <Button
+                android:id="@+id/themeBlueButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:text="🔵"/>
+
+            <Button
+                android:id="@+id/themePurpleButton"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:text="🟣"/>
+
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transport"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
+        <RadioGroup
+            android:id="@+id/transportGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/usbTransportRadio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="USB MIDI"/>
+
+            <RadioButton
+                android:id="@+id/wifiTransportRadio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wi-Fi MIDI"/>
+
+        </RadioGroup>
 
     </LinearLayout>
 
