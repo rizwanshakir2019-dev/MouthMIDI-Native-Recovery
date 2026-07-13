@@ -8,7 +8,8 @@ import android.util.Log
 import java.io.IOException
 
 class MidiOutputManager(
-    private val context: Context
+    private val context: Context,
+    private val onConnectionChanged: (Boolean) -> Unit = {}
 ) {
 
     private var midiManager: MidiManager? = null
@@ -33,6 +34,7 @@ class MidiOutputManager(
 
         if (devices.isEmpty()) {
             connected = false
+              onConnectionChanged(false)
             Log.d("MouthMIDI", "No MIDI device")
             return
         }
@@ -51,6 +53,7 @@ class MidiOutputManager(
 
                 if (device == null) {
                     connected = false
+                      onConnectionChanged(false)
                     Log.d("MouthMIDI", "MIDI open failed")
                     return@openDevice
                 }
@@ -68,6 +71,7 @@ class MidiOutputManager(
 
 
                     connected = true
+                      onConnectionChanged(true)
 
                     Log.d(
                         "MouthMIDI",
@@ -85,6 +89,7 @@ class MidiOutputManager(
     fun disconnect() {
 
         connected = false
+        onConnectionChanged(false)
 
         inputPort?.close()
         inputPort = null

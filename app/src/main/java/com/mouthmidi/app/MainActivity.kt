@@ -93,7 +93,24 @@ class MainActivity : AppCompatActivity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
 
-        midiOutputManager = MidiOutputManager(this)
+        previewView = findViewById(R.id.cameraPreview)
+        faceStatus = findViewById(R.id.faceStatus)
+        midiStatus = findViewById(R.id.midiStatus)
+        outputStatus = findViewById(R.id.outputStatus)
+
+        midiOutputManager = MidiOutputManager(this) { connected ->
+
+            runOnUiThread {
+
+                outputStatus.text =
+                    if (connected)
+                        "USB MIDI"
+                    else
+                        "No MIDI"
+
+            }
+
+        }
         midiOutputManager.connect()
 
 
@@ -102,16 +119,9 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        previewView = findViewById(R.id.cameraPreview)
-        faceStatus = findViewById(R.id.faceStatus)
-        midiStatus = findViewById(R.id.midiStatus)
-        outputStatus = findViewById(R.id.outputStatus)
 
         midiStatus.text = "CC${settings.midiCC} CH${settings.midiChannel}"
 
-        outputStatus.text =
-            if (midiOutputManager.connected) "USB MIDI Connected"
-            else "No MIDI Device"
         ccValue = findViewById(R.id.ccValue)
         ccMeter = findViewById(R.id.ccMeter)
 
