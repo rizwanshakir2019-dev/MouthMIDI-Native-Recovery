@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var previewView: PreviewView
     private lateinit var faceStatus: TextView
+    private lateinit var midiStatus: TextView
+    private lateinit var outputStatus: TextView
     private lateinit var ccValue: TextView
     private lateinit var ccMeter: MouthMeterView
 
@@ -94,6 +96,7 @@ class MainActivity : AppCompatActivity() {
         midiOutputManager = MidiOutputManager(this)
         midiOutputManager.connect()
 
+
         smoothingProcessor = SmoothingProcessor(
             settings.smoothing
         )
@@ -101,6 +104,14 @@ class MainActivity : AppCompatActivity() {
 
         previewView = findViewById(R.id.cameraPreview)
         faceStatus = findViewById(R.id.faceStatus)
+        midiStatus = findViewById(R.id.midiStatus)
+        outputStatus = findViewById(R.id.outputStatus)
+
+        midiStatus.text = "CC${settings.midiCC} CH${settings.midiChannel}"
+
+        outputStatus.text =
+            if (midiOutputManager.connected) "USB MIDI Connected"
+            else "No MIDI Device"
         ccValue = findViewById(R.id.ccValue)
         ccMeter = findViewById(R.id.ccMeter)
 

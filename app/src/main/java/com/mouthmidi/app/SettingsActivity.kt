@@ -29,6 +29,14 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var maxCCInput: EditText
 
+    private lateinit var sensitivityInput: EditText
+
+    private lateinit var deadZoneInput: EditText
+
+    private lateinit var invertSwitch: Switch
+
+    private lateinit var holdLastValueSwitch: Switch
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,6 +73,18 @@ class SettingsActivity : AppCompatActivity() {
         maxCCInput =
             findViewById(R.id.maxCCInput)
 
+        sensitivityInput =
+            findViewById(R.id.sensitivityInput)
+
+        deadZoneInput =
+            findViewById(R.id.deadZoneInput)
+
+        invertSwitch =
+            findViewById(R.id.invertSwitch)
+
+        holdLastValueSwitch =
+            findViewById(R.id.holdLastValueSwitch)
+
         midiChannelInput.setText(
             settings.midiChannel.toString()
         )
@@ -91,7 +111,21 @@ class SettingsActivity : AppCompatActivity() {
 
         maxCCInput.setText(
             settings.maxCC.toString()
-        )
+          )
+
+        sensitivityInput.setText(
+              settings.sensitivity.toString()
+          )
+
+        deadZoneInput.setText(
+              settings.deadZone.toString()
+          )
+
+        invertSwitch.isChecked =
+              settings.invert
+
+        holdLastValueSwitch.isChecked =
+              settings.holdLastValue
 
         flashlightSwitch.isChecked =
             settings.flashlightEnabled
@@ -142,6 +176,21 @@ class SettingsActivity : AppCompatActivity() {
             (maxCCInput.text.toString()
                 .toIntOrNull() ?: 127)
                 .coerceIn(0,127)
+
+
+          settings.sensitivity =
+              sensitivityInput.text.toString()
+                  .toFloatOrNull() ?: 1.0f
+
+          settings.deadZone =
+              deadZoneInput.text.toString()
+                  .toFloatOrNull() ?: 0f
+
+          settings.invert =
+              invertSwitch.isChecked
+
+          settings.holdLastValue =
+              holdLastValueSwitch.isChecked
 
         settingsRepository.save(settings)
     }
