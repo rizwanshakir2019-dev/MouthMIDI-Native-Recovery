@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
 import android.util.Log
 import android.widget.TextView
 import android.widget.Button
@@ -85,6 +86,10 @@ class MainActivity : AppCompatActivity() {
         settingsRepository = SettingsRepository(this)
 
         settings = settingsRepository.load()
+
+        if (settings.keepScreenAwake) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         midiOutputManager = MidiOutputManager(this)
         midiOutputManager.connect()
