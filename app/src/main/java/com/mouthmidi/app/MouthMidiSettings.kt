@@ -14,5 +14,21 @@ data class MouthMidiSettings(
 
     var midiChannel: Int = 1,
 
-    var smoothing: Float = 0f
+    var smoothing: Float = 0f,
+
+    var sensitivity: Float = 1.0f,
+
+    var deadZone: Float = 0f,
+
+    var invert: Boolean = false,
+
+    var holdLastValue: Boolean = true,
+
+    var themeColor: String = "orange",
+
+    var transport: String = "USB",
+
+    var flashlightEnabled: Boolean = false,
+
+    var keepScreenAwake: Boolean = true
 )
