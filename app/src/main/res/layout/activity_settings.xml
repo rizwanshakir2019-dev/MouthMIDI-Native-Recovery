@@ -47,12 +47,41 @@
             android:layout_height="wrap_content"
             android:text="Load Preset"/>
 
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MIDI Channel"
+            android:layout_marginTop="24dp"/>
+
+        <EditText
+            android:id="@+id/midiChannelInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="1"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MIDI CC Number"
+            android:layout_marginTop="12dp"/>
+
+        <EditText
+            android:id="@+id/midiCCInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="1"/>
+
         <Switch
             android:id="@+id/flashlightSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Flashlight On/Off (for rear camera)"
             android:layout_marginTop="24dp"/>
+
+
 
         <Switch
             android:id="@+id/keepScreenAwakeSwitch"

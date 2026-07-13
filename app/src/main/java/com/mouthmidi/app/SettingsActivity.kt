@@ -2,6 +2,7 @@ package com.mouthmidi.app
 
 import android.os.Bundle
 import android.widget.Switch
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 
 class SettingsActivity : AppCompatActivity() {
@@ -13,6 +14,10 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var flashlightSwitch: Switch
 
     private lateinit var keepScreenAwakeSwitch: Switch
+
+    private lateinit var midiChannelInput: EditText
+
+    private lateinit var midiCCInput: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +34,20 @@ class SettingsActivity : AppCompatActivity() {
         keepScreenAwakeSwitch =
             findViewById(R.id.keepScreenAwakeSwitch)
 
+        midiChannelInput =
+            findViewById(R.id.midiChannelInput)
+
+        midiCCInput =
+            findViewById(R.id.midiCCInput)
+
+        midiChannelInput.setText(
+            settings.midiChannel.toString()
+        )
+
+        midiCCInput.setText(
+            settings.midiCC.toString()
+        )
+
         flashlightSwitch.isChecked =
             settings.flashlightEnabled
 
@@ -41,6 +60,15 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+
+
+        settings.midiChannel =
+            (midiChannelInput.text.toString().toIntOrNull() ?: 1)
+                .coerceIn(1,16)
+
+        settings.midiCC =
+            (midiCCInput.text.toString().toIntOrNull() ?: 1)
+                .coerceIn(0,127)
 
         settings.flashlightEnabled =
             flashlightSwitch.isChecked
