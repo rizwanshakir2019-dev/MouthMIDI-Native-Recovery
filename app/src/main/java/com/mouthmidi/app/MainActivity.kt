@@ -5,8 +5,19 @@ import android.content.pm.PackageManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
+import android.view.View
+import android.view.LayoutInflater
+import android.widget.FrameLayout
+import android.widget.Switch
+import android.widget.EditText
+import android.widget.RadioButton
+import android.widget.SeekBar
 import android.util.Log
 import android.widget.TextView
+import android.widget.ScrollView
+import android.widget.Spinner
+import android.widget.ArrayAdapter
+import android.app.AlertDialog
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +51,45 @@ class MainActivity : AppCompatActivity() {
     private lateinit var startButton: Button
 
     private lateinit var settingsButton: Button
+    private lateinit var recalibrateButton: Button
+    private lateinit var defaultCalibrationButton: Button
+    private lateinit var calibrationStatusText: TextView
+    private lateinit var settingsScrollView: ScrollView
+
+    private lateinit var presetSpinner: Spinner
+    private lateinit var savePresetButton: Button
+    private lateinit var loadPresetButton: Button
+
+    private lateinit var themeOrangeButton: Button
+    private lateinit var themeYellowButton: Button
+    private lateinit var themeGreenButton: Button
+    private lateinit var themeBlueButton: Button
+    private lateinit var themePurpleButton: Button
+
+    private lateinit var settingsContainer: FrameLayout
+    private var settingsView: View? = null
+
+    private lateinit var flashlightSwitch: Switch
+    private lateinit var keepScreenAwakeSwitch: Switch
+    private lateinit var midiChannelInput: EditText
+    private lateinit var midiCCInput: EditText
+    private lateinit var jawClosedCalibrationInput: TextView
+    private lateinit var jawOpenCalibrationInput: TextView
+    private lateinit var smoothingSeekBar: SeekBar
+    private lateinit var minCCSeekBar: SeekBar
+    private lateinit var maxCCSeekBar: SeekBar
+    private lateinit var sensitivitySeekBar: SeekBar
+    private lateinit var deadZoneSeekBar: SeekBar
+
+    private lateinit var smoothingValueText: TextView
+    private lateinit var minCCValueText: TextView
+    private lateinit var maxCCValueText: TextView
+    private lateinit var sensitivityValueText: TextView
+    private lateinit var deadZoneValueText: TextView
+    private lateinit var invertSwitch: Switch
+    private lateinit var holdLastValueSwitch: Switch
+    private lateinit var usbTransportRadio: RadioButton
+    private lateinit var wifiTransportRadio: RadioButton
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -60,6 +110,12 @@ class MainActivity : AppCompatActivity() {
     private var lastMpError = ""
 
     private var lastJawOpen = 0f
+
+    private var calibrationMode = false
+    private var calibrationStep = 0
+    private var calibrationMin = 1f
+    private var calibrationMax = 0f
+    private var calibrationStartTime = 0L
     private var lastCC = 0
 
     private var useFrontCamera = true
@@ -143,7 +199,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         settingsButton.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+            toggleSettings()
         }
 
 
@@ -367,6 +423,113 @@ class MainActivity : AppCompatActivity() {
                         it.categoryName() == "jawOpen"
                     }
                     lastJawOpen = jaw?.score() ?: 0f
+
+                      JawState.currentJawOpen = lastJawOpen
+
+
+                    if (calibrationMode) {
+
+                        val now = System.currentTimeMillis()
+
+                        when(calibrationStep) {
+
+                            1 -> {
+
+                                calibrationMin =
+                                    minOf(calibrationMin, lastJawOpen)
+
+                                runOnUiThread {
+
+                                    val elapsed =
+                                        (now - calibrationStartTime) / 1000f
+
+                                    calibrationStatusText.text =
+                                        String.format(
+                                            "Recording closed mouth: %.1f / 3.0 sec",
+                                            elapsed
+                                        )
+                                }
+
+
+                                if (now - calibrationStartTime > 3000) {
+
+                                    settings.jawClosedCalibration =
+                                        calibrationMin
+
+                                    calibrationStep = 2
+
+                                    calibrationMax = 0f
+
+                                    calibrationStartTime = now
+
+                                    runOnUiThread {
+
+
+
+
+
+        recalibrateButton.text =
+                                            "Open mouth fully..."
+
+                                        calibrationStatusText.text =
+                                            "Now open mouth fully..."
+
+                                    }
+                                }
+
+                            }
+
+
+                            2 -> {
+
+                                calibrationMax =
+                                    maxOf(calibrationMax, lastJawOpen)
+
+                                runOnUiThread {
+
+                                    val elapsed =
+                                        (now - calibrationStartTime) / 1000f
+
+                                    calibrationStatusText.text =
+                                        String.format(
+                                            "Recording open mouth: %.1f / 3.0 sec",
+                                            elapsed
+                                        )
+                                }
+
+
+                                if (now - calibrationStartTime > 3000) {
+
+                                    settings.jawOpenCalibration =
+                                        calibrationMax
+
+                                    calibrationMode = false
+                                    calibrationStep = 0
+
+                                    settingsRepository.save(settings)
+
+                                    runOnUiThread {
+
+                                        loadSettingsUI()
+
+
+
+
+
+        recalibrateButton.text =
+                                            "Recalibrate Mouth Range"
+
+                                        calibrationStatusText.text =
+                                            "Calibration saved ✅"
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
                 }
             }
 
@@ -434,6 +597,23 @@ class MainActivity : AppCompatActivity() {
 
 
 
+    override fun onBackPressed() {
+
+        if (::settingsContainer.isInitialized &&
+            settingsContainer.visibility == View.VISIBLE) {
+
+            saveSettings()
+
+            settingsContainer.visibility = View.GONE
+
+        } else {
+
+            super.onBackPressed()
+
+        }
+    }
+
+
     override fun onDestroy() {
 
         super.onDestroy()
@@ -444,4 +624,550 @@ class MainActivity : AppCompatActivity() {
         midiOutputManager.cleanup()
         faceLandmarker?.close()
     }
+
+    private fun toggleSettings() {
+
+        if (!::settingsContainer.isInitialized) {
+            settingsContainer = findViewById(R.id.settingsContainer)
+        }
+
+        if (settingsView == null) {
+
+            settingsView =
+                LayoutInflater.from(this)
+                    .inflate(
+                        R.layout.activity_settings,
+                        settingsContainer,
+                        false
+                    )
+
+            settingsView?.layoutParams =
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+
+            settingsContainer.addView(settingsView)
+
+            setupSettingsControls()
+
+            setupSettingsSwipe()
+        }
+
+        if (settingsContainer.visibility == View.VISIBLE) {
+
+            saveSettings()
+            settingsContainer.visibility = View.GONE
+
+        } else {
+
+            settingsContainer.visibility = View.VISIBLE
+        }
+    }
+
+
+    private fun setupSettingsSwipe() {
+
+        val view = settingsView ?: return
+
+        settingsScrollView =
+            view.findViewById(R.id.settingsScrollView)
+
+        var downY = 0f
+
+        view.setOnTouchListener { _, event ->
+
+            when (event.action) {
+
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    downY = event.rawY
+                    true
+                }
+
+                android.view.MotionEvent.ACTION_UP -> {
+
+                    val diff = event.rawY - downY
+
+                    if (diff > 200 && settingsScrollView.scrollY == 0) {
+
+                        saveSettings()
+
+                        settingsContainer.visibility =
+                            View.GONE
+
+                        true
+
+                    } else {
+                        false
+                    }
+                }
+
+                else -> false
+            }
+        }
+    }
+
+    private fun setupSettingsControls() {
+
+        val view = settingsView ?: return
+
+        flashlightSwitch = view.findViewById(R.id.flashlightSwitch)
+        keepScreenAwakeSwitch = view.findViewById(R.id.keepScreenAwakeSwitch)
+
+        midiChannelInput = view.findViewById(R.id.midiChannelInput)
+        midiCCInput = view.findViewById(R.id.midiCCInput)
+
+        jawClosedCalibrationInput = view.findViewById(R.id.jawClosedCalibrationInput)
+        jawOpenCalibrationInput = view.findViewById(R.id.jawOpenCalibrationInput)
+
+        smoothingSeekBar = view.findViewById(R.id.smoothingSeekBar)
+        minCCSeekBar = view.findViewById(R.id.minCCSeekBar)
+        maxCCSeekBar = view.findViewById(R.id.maxCCSeekBar)
+
+        sensitivitySeekBar = view.findViewById(R.id.sensitivitySeekBar)
+        deadZoneSeekBar = view.findViewById(R.id.deadZoneSeekBar)
+
+
+        smoothingValueText = view.findViewById(R.id.smoothingValueText)
+        minCCValueText = view.findViewById(R.id.minCCValueText)
+        maxCCValueText = view.findViewById(R.id.maxCCValueText)
+
+        sensitivityValueText = view.findViewById(R.id.sensitivityValueText)
+        deadZoneValueText = view.findViewById(R.id.deadZoneValueText)
+
+        invertSwitch = view.findViewById(R.id.invertSwitch)
+        holdLastValueSwitch = view.findViewById(R.id.holdLastValueSwitch)
+
+        usbTransportRadio = view.findViewById(R.id.usbTransportRadio)
+        wifiTransportRadio = view.findViewById(R.id.wifiTransportRadio)
+
+        recalibrateButton =
+            view.findViewById(R.id.recalibrateButton)
+
+        defaultCalibrationButton =
+            view.findViewById(R.id.defaultCalibrationButton)
+
+        calibrationStatusText =
+            view.findViewById(R.id.calibrationStatusText)
+
+        presetSpinner =
+            view.findViewById(R.id.presetSpinner)
+
+        savePresetButton =
+            view.findViewById(R.id.savePresetButton)
+
+        loadPresetButton =
+            view.findViewById(R.id.loadPresetButton)
+
+
+        themeOrangeButton = view.findViewById(R.id.themeOrangeButton)
+        themeYellowButton = view.findViewById(R.id.themeYellowButton)
+        themeGreenButton = view.findViewById(R.id.themeGreenButton)
+        themeBlueButton = view.findViewById(R.id.themeBlueButton)
+        themePurpleButton = view.findViewById(R.id.themePurpleButton)
+
+        themeOrangeButton.setOnClickListener {
+            settings.themeColor = "orange"
+            settingsRepository.save(settings)
+        }
+
+        themeYellowButton.setOnClickListener {
+            settings.themeColor = "yellow"
+            settingsRepository.save(settings)
+        }
+
+        themeGreenButton.setOnClickListener {
+            settings.themeColor = "green"
+            settingsRepository.save(settings)
+        }
+
+        themeBlueButton.setOnClickListener {
+            settings.themeColor = "blue"
+            settingsRepository.save(settings)
+        }
+
+        themePurpleButton.setOnClickListener {
+            settings.themeColor = "purple"
+            settingsRepository.save(settings)
+        }
+
+
+        defaultCalibrationButton.setOnClickListener {
+
+            settings.jawClosedCalibration = 0.01f
+            settings.jawOpenCalibration = 0.80f
+
+            settingsRepository.save(settings)
+
+            loadSettingsUI()
+        }
+
+
+
+
+
+        recalibrateButton.text =
+            "Recalibrate Mouth Range"
+
+        recalibrateButton.setOnClickListener {
+
+            calibrationMode = true
+            calibrationStep = 1
+
+            calibrationMin = 1f
+            calibrationMax = 0f
+            calibrationStartTime = System.currentTimeMillis()
+
+
+
+
+
+        recalibrateButton.text =
+                "Close mouth..."
+
+        }
+
+
+        savePresetButton.setOnClickListener {
+
+            val input = EditText(this)
+
+            AlertDialog.Builder(this)
+                .setTitle("Save Preset")
+                .setMessage("Preset name")
+                .setView(input)
+                .setPositiveButton("Save") { _, _ ->
+
+                    val name =
+                        input.text.toString().trim()
+
+                    if (name.isNotEmpty()) {
+
+                        settingsRepository.savePreset(
+                            name,
+                            currentPresetSettings()
+                        )
+
+                        refreshPresetSpinner()
+
+                        calibrationStatusText.text =
+                            "Preset saved ✅"
+                    }
+
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+
+
+        loadPresetButton.setOnClickListener {
+
+            val name =
+                presetSpinner.selectedItem.toString()
+
+            val preset =
+                if (name == "Default") {
+                    PresetSettings()
+                } else {
+                    settingsRepository.loadPreset(name)
+                }
+
+
+            settings.jawClosedCalibration = preset.jawClosedCalibration
+            settings.jawOpenCalibration = preset.jawOpenCalibration
+
+            settings.minCC = preset.minCC
+            settings.maxCC = preset.maxCC
+
+            settings.midiCC = preset.midiCC
+            settings.midiChannel = preset.midiChannel
+
+            settings.smoothing = preset.smoothing
+            settings.sensitivity = preset.sensitivity
+            settings.deadZone = preset.deadZone
+
+            settings.invert = preset.invert
+            settings.holdLastValue = preset.holdLastValue
+
+            settings.themeColor = preset.themeColor
+
+
+            settingsRepository.save(settings)
+
+            loadSettingsUI()
+
+            calibrationStatusText.text =
+                "Preset loaded ✅"
+        }
+
+
+        refreshPresetSpinner()
+
+        setupSliderListeners()
+
+        loadSettingsUI()
+    }
+
+
+    private fun setupSliderListeners() {
+
+
+        smoothingSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    smoothingValueText.text =
+                        String.format("%.2f", progress / 100f)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            }
+        )
+
+
+        minCCSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    minCCValueText.text =
+                        progress.toString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            }
+        )
+
+
+        maxCCSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    maxCCValueText.text =
+                        progress.toString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            }
+        )
+
+
+        sensitivitySeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    sensitivityValueText.text =
+                        String.format("%.2f", progress / 100f)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            }
+        )
+
+
+        deadZoneSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    deadZoneValueText.text =
+                        String.format("%.2f", progress / 100f)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            }
+        )
+    }
+
+
+
+    private fun refreshPresetSpinner() {
+
+        val names =
+            mutableListOf("Default")
+
+        names.addAll(
+            settingsRepository.getPresetNames()
+        )
+
+        val adapter =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                names
+            )
+
+        presetSpinner.adapter = adapter
+    }
+
+
+    private fun currentPresetSettings(): PresetSettings {
+
+        return PresetSettings(
+
+            jawClosedCalibration =
+                settings.jawClosedCalibration,
+
+            jawOpenCalibration =
+                settings.jawOpenCalibration,
+
+            minCC =
+                settings.minCC,
+
+            maxCC =
+                settings.maxCC,
+
+            midiCC =
+                settings.midiCC,
+
+            midiChannel =
+                settings.midiChannel,
+
+            smoothing =
+                settings.smoothing,
+
+            sensitivity =
+                settings.sensitivity,
+
+            deadZone =
+                settings.deadZone,
+
+            invert =
+                settings.invert,
+
+            holdLastValue =
+                settings.holdLastValue,
+
+            themeColor =
+                settings.themeColor
+        )
+    }
+
+    private fun loadSettingsUI() {
+
+        midiChannelInput.setText(settings.midiChannel.toString())
+        midiCCInput.setText(settings.midiCC.toString())
+
+        jawClosedCalibrationInput.setText(
+            String.format("%.2f", settings.jawClosedCalibration)
+        )
+
+        jawOpenCalibrationInput.setText(
+            String.format("%.2f", settings.jawOpenCalibration)
+        )
+
+
+        smoothingSeekBar.progress =
+            (settings.smoothing * 100).toInt()
+
+        smoothingValueText.text =
+            String.format("%.2f", settings.smoothing)
+
+
+        minCCSeekBar.progress =
+            settings.minCC
+
+        minCCValueText.text =
+            settings.minCC.toString()
+
+
+        maxCCSeekBar.progress =
+            settings.maxCC
+
+        maxCCValueText.text =
+            settings.maxCC.toString()
+
+
+        sensitivitySeekBar.progress =
+            (settings.sensitivity * 100).toInt()
+
+        sensitivityValueText.text =
+            String.format("%.2f", settings.sensitivity)
+
+
+        deadZoneSeekBar.progress =
+            (settings.deadZone * 100).toInt()
+
+        deadZoneValueText.text =
+            String.format("%.2f", settings.deadZone)
+
+        invertSwitch.isChecked = settings.invert
+        holdLastValueSwitch.isChecked = settings.holdLastValue
+
+        flashlightSwitch.isChecked = settings.flashlightEnabled
+        keepScreenAwakeSwitch.isChecked = settings.keepScreenAwake
+
+        if (settings.transport == "WIFI") {
+            wifiTransportRadio.isChecked = true
+        } else {
+            usbTransportRadio.isChecked = true
+        }
+    }
+
+
+    private fun saveSettings() {
+
+        settings.midiChannel =
+            midiChannelInput.text.toString().toIntOrNull()
+                ?.coerceIn(1,16) ?: 1
+
+        settings.midiCC =
+            midiCCInput.text.toString().toIntOrNull()
+                ?.coerceIn(0,127) ?: 1
+
+        settings.smoothing =
+            smoothingSeekBar.progress / 100f
+
+        settings.minCC =
+            minCCSeekBar.progress.coerceIn(0,127)
+
+        settings.maxCC =
+            maxCCSeekBar.progress.coerceIn(0,127)
+
+        settings.sensitivity =
+            sensitivitySeekBar.progress / 100f
+
+        settings.deadZone =
+            deadZoneSeekBar.progress / 100f
+
+        settings.invert = invertSwitch.isChecked
+        settings.holdLastValue = holdLastValueSwitch.isChecked
+
+        settings.flashlightEnabled = flashlightSwitch.isChecked
+        settings.keepScreenAwake = keepScreenAwakeSwitch.isChecked
+
+        settings.transport =
+            if (wifiTransportRadio.isChecked) "WIFI" else "USB"
+
+        settingsRepository.save(settings)
+
+        smoothingProcessor = SmoothingProcessor(settings.smoothing)
+
+        midiStatus.text =
+            "CC${settings.midiCC} CH${settings.midiChannel}"
+    }
+
 }
