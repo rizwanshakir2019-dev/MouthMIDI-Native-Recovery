@@ -136,6 +136,43 @@
             android:inputType="number"
             android:text="127"/>
 
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Sensitivity"
+              android:layout_marginTop="12dp"/>
+
+          <EditText
+              android:id="@+id/sensitivityInput"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:inputType="numberDecimal"
+              android:text="1.0"/>
+
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Dead Zone"/>
+
+          <EditText
+              android:id="@+id/deadZoneInput"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:inputType="numberDecimal"
+              android:text="0.0"/>
+
+          <Switch
+              android:id="@+id/invertSwitch"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Invert Mouth Control"/>
+
+          <Switch
+              android:id="@+id/holdLastValueSwitch"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Hold Last MIDI Value"/>
         <Switch
             android:id="@+id/flashlightSwitch"
             android:layout_width="match_parent"
@@ -146,17 +183,7 @@
 
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jaw Closed Calibration"
-            android:layout_marginTop="24dp"/>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:text="127"/>
 
         <Switch
             android:id="@+id/keepScreenAwakeSwitch"
