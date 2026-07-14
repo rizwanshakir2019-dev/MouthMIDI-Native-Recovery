@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.graphics.Paint
+import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
 import android.view.View
@@ -64,11 +65,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var savePresetButton: Button
     private lateinit var loadPresetButton: Button
 
-    private lateinit var themeOrangeButton: Button
-    private lateinit var themeYellowButton: Button
-    private lateinit var themeGreenButton: Button
-    private lateinit var themeBlueButton: Button
-    private lateinit var themePurpleButton: Button
+    private lateinit var themeOrangeButton: View
+    private lateinit var themeYellowButton: View
+    private lateinit var themeGreenButton: View
+    private lateinit var themeBlueButton: View
+    private lateinit var themePurpleButton: View
 
     private lateinit var settingsContainer: FrameLayout
     private var settingsView: View? = null
@@ -193,6 +194,8 @@ class MainActivity : AppCompatActivity() {
         startButton = findViewById(R.id.startButton)
 
         settingsButton = findViewById(R.id.settingsButton)
+
+          applyTheme()
 
         startButton.text = "■"
 
@@ -527,7 +530,7 @@ class MainActivity : AppCompatActivity() {
 
                                     runOnUiThread {
 
-                                        loadSettingsUI()
+                                        // loadSettingsUI() // TEMP CRASH TEST
 
 
 
@@ -865,6 +868,8 @@ class MainActivity : AppCompatActivity() {
             view.findViewById(R.id.loadPresetButton)
 
 
+        
+
         themeOrangeButton = view.findViewById(R.id.themeOrangeButton)
         themeYellowButton = view.findViewById(R.id.themeYellowButton)
         themeGreenButton = view.findViewById(R.id.themeGreenButton)
@@ -872,31 +877,35 @@ class MainActivity : AppCompatActivity() {
         themePurpleButton = view.findViewById(R.id.themePurpleButton)
 
         themeOrangeButton.setOnClickListener {
-            settings.themeColor = "orange"
+            settings.themeColor = "pink"
             settingsRepository.save(settings)
+            applyTheme()
         }
 
         themeYellowButton.setOnClickListener {
-            settings.themeColor = "yellow"
+            settings.themeColor = "purple"
             settingsRepository.save(settings)
+            applyTheme()
         }
 
         themeGreenButton.setOnClickListener {
-            settings.themeColor = "green"
+            settings.themeColor = "cyan"
             settingsRepository.save(settings)
+            applyTheme()
         }
 
         themeBlueButton.setOnClickListener {
-            settings.themeColor = "blue"
+            settings.themeColor = "green"
             settingsRepository.save(settings)
+            applyTheme()
         }
 
         themePurpleButton.setOnClickListener {
-            settings.themeColor = "purple"
+            settings.themeColor = "gold"
             settingsRepository.save(settings)
+            applyTheme()
         }
-
-        val youtubeLinkText =
+val youtubeLinkText =
             view.findViewById<TextView>(R.id.youtubeLinkText)
 
         youtubeLinkText.paintFlags =
@@ -1158,7 +1167,7 @@ class MainActivity : AppCompatActivity() {
           settings.invert = false
           settings.holdLastValue = true
 
-          settings.themeColor = "orange"
+          settings.themeColor = "pink"
 
           settingsRepository.save(settings)
 
@@ -1213,6 +1222,31 @@ class MainActivity : AppCompatActivity() {
           loadSettingsUI()
       }
 
+
+
+    private fun getThemeColor(): Int {
+        return when (settings.themeColor.lowercase()) {
+            "pink" -> Color.parseColor("#EA547F")
+            "purple" -> Color.parseColor("#8A7CE2")
+            "cyan" -> Color.parseColor("#50C5B7")
+            "green" -> Color.parseColor("#8EE55B")
+            "gold" -> Color.parseColor("#D4B358")
+            else -> Color.parseColor("#EA547F")
+        }
+    }
+
+    private fun applyTheme() {
+
+        val color = getThemeColor()
+
+        ccValue.setTextColor(color)
+        midiStatus.setTextColor(color)
+
+        startButton.setBackgroundColor(color)
+
+        cameraButton.setTextColor(color)
+        settingsButton.setTextColor(color)
+    }
 
 private fun loadSettingsUI() {
 
