@@ -27,6 +27,12 @@ data class MouthMidiSettings(
 
     var transport: String = "USB",
 
+    var wifiHost: String = "192.168.1.100",
+
+    var wifiPort: Int = 5004,
+
+    var wifiSessionName: String = "MouthMIDI",
+
     var flashlightEnabled: Boolean = false,
 
     var keepScreenAwake: Boolean = true

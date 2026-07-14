@@ -115,9 +115,27 @@ class SettingsRepository(
 
             transport =
                 prefs.getString(
-                    "transport",
+                  "transport",
                     "USB"
-                ) ?: "USB"
+                ) ?: "USB",
+
+              wifiHost =
+                  prefs.getString(
+                  "wifiHost",
+                      "192.168.1.100"
+                  ) ?: "192.168.1.100",
+
+              wifiPort =
+                  prefs.getInt(
+                  "wifiPort",
+                      5004
+                  ),
+
+              wifiSessionName =
+                  prefs.getString(
+                    "wifiSessionName",
+                      "MouthMIDI"
+                  ) ?: "MouthMIDI"
         )
     }
 
@@ -191,10 +209,25 @@ class SettingsRepository(
                 settings.keepScreenAwake
             )
 
-            .putString(
-                "transport",
-                settings.transport
-            )
+              .putString(
+                  "transport",
+                  settings.transport
+              )
+
+              .putString(
+                  "wifiHost",
+                  settings.wifiHost
+              )
+
+              .putInt(
+                  "wifiPort",
+                  settings.wifiPort
+              )
+
+              .putString(
+                  "wifiSessionName",
+                  settings.wifiSessionName
+              )
 
             .apply()
     }

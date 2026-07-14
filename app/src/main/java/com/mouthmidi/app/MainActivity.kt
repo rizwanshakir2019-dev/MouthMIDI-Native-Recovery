@@ -93,6 +93,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var usbTransportRadio: RadioButton
     private lateinit var wifiTransportRadio: RadioButton
 
+      private lateinit var wifiSettingsContainer: View
+      private lateinit var wifiHostInput: EditText
+      private lateinit var wifiPortInput: EditText
+      private lateinit var wifiSessionInput: EditText
+
     private lateinit var cameraExecutor: ExecutorService
 
     private var faceLandmarker: FaceLandmarker? = null
@@ -732,6 +737,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    
+    private fun updateWifiSettingsVisibility() {
+
+        if (wifiTransportRadio.isChecked) {
+            wifiSettingsContainer.visibility = View.VISIBLE
+        } else {
+            wifiSettingsContainer.visibility = View.GONE
+        }
+
+    }
+
     private fun setupSettingsControls() {
 
         val view = settingsView ?: return
@@ -782,6 +798,26 @@ class MainActivity : AppCompatActivity() {
 
         usbTransportRadio = view.findViewById(R.id.usbTransportRadio)
         wifiTransportRadio = view.findViewById(R.id.wifiTransportRadio)
+
+          usbTransportRadio.setOnCheckedChangeListener { _, _ ->
+              updateWifiSettingsVisibility()
+          }
+
+          wifiTransportRadio.setOnCheckedChangeListener { _, _ ->
+              updateWifiSettingsVisibility()
+          }
+
+          wifiSettingsContainer =
+              view.findViewById(R.id.wifiSettingsContainer)
+
+          wifiHostInput =
+              view.findViewById(R.id.wifiHostInput)
+
+          wifiPortInput =
+              view.findViewById(R.id.wifiPortInput)
+
+          wifiSessionInput =
+              view.findViewById(R.id.wifiSessionInput)
 
         recalibrateButton =
             view.findViewById(R.id.recalibrateButton)
@@ -1228,10 +1264,24 @@ private fun loadSettingsUI() {
         keepScreenAwakeSwitch.isChecked = settings.keepScreenAwake
 
         if (settings.transport == "WIFI") {
-            wifiTransportRadio.isChecked = true
-        } else {
-            usbTransportRadio.isChecked = true
-        }
+              wifiTransportRadio.isChecked = true
+          } else {
+              usbTransportRadio.isChecked = true
+          }
+
+          wifiHostInput.setText(
+              settings.wifiHost
+          )
+
+          wifiPortInput.setText(
+              settings.wifiPort.toString()
+          )
+
+          wifiSessionInput.setText(
+              settings.wifiSessionName
+          )
+
+          updateWifiSettingsVisibility()
 
     }
 
@@ -1273,6 +1323,16 @@ private fun loadSettingsUI() {
         settings.transport =
             if (wifiTransportRadio.isChecked) "WIFI" else "USB"
 
+          settings.wifiHost =
+              wifiHostInput.text.toString()
+
+          settings.wifiPort =
+              wifiPortInput.text.toString()
+                  .toIntOrNull() ?: 5004
+
+          settings.wifiSessionName =
+              wifiSessionInput.text.toString()
+
         settingsRepository.save(settings)
 
         smoothingProcessor = SmoothingProcessor(settings.smoothing)
@@ -1282,3 +1342,4 @@ private fun loadSettingsUI() {
     }
 
 }
+
