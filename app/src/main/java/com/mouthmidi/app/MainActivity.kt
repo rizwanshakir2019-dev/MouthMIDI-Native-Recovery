@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.graphics.Paint
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.WindowManager
 import android.view.View
@@ -195,7 +196,8 @@ class MainActivity : AppCompatActivity() {
 
         settingsButton = findViewById(R.id.settingsButton)
 
-          applyTheme()
+        applyTheme()
+
 
         startButton.text = "■"
 
@@ -530,7 +532,9 @@ class MainActivity : AppCompatActivity() {
 
                                     runOnUiThread {
 
-                                        // loadSettingsUI() // TEMP CRASH TEST
+                                        loadSettingsUI()
+
+            applyTheme()
 
 
 
@@ -684,6 +688,7 @@ class MainActivity : AppCompatActivity() {
 
             setupSettingsControls()
 
+
             setupSettingsSwipe()
         }
 
@@ -743,6 +748,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateWifiSettingsVisibility() {
 
+
         if (wifiTransportRadio.isChecked) {
             wifiSettingsContainer.visibility = View.VISIBLE
         } else {
@@ -752,6 +758,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupSettingsControls() {
+
 
         val view = settingsView ?: return
 
@@ -804,10 +811,12 @@ class MainActivity : AppCompatActivity() {
 
           usbTransportRadio.setOnCheckedChangeListener { _, _ ->
               updateWifiSettingsVisibility()
+
           }
 
           wifiTransportRadio.setOnCheckedChangeListener { _, _ ->
               updateWifiSettingsVisibility()
+
           }
 
           wifiSettingsContainer =
@@ -930,6 +939,8 @@ val youtubeLinkText =
             settingsRepository.save(settings)
 
             loadSettingsUI()
+
+            applyTheme()
         }
 
 
@@ -980,9 +991,12 @@ val youtubeLinkText =
                             currentPresetSettings()
                         )
 
-                        settingsRepository.saveLastPreset(name)
+          settingsRepository.saveLastPreset(name)
 
-                          refreshPresetSpinner()
+          loadSettingsUI()
+
+            applyTheme()
+
 
                         calibrationStatusText.text =
                               ""
@@ -1007,6 +1021,7 @@ val youtubeLinkText =
 
             settingsRepository.saveLastPreset("Default")
 
+
             refreshPresetSpinner()
 
             presetSpinner.setSelection(0)
@@ -1019,7 +1034,18 @@ val youtubeLinkText =
 
         setupSliderListeners()
 
-        loadSettingsUI()
+        val lastPreset =
+            settingsRepository.getLastPreset()
+
+        if (lastPreset == "Default") {
+            loadDefaultSettings()
+        } else {
+            applyPreset(lastPreset)
+
+            applyTheme()
+
+        }
+
     }
 
 
@@ -1173,7 +1199,10 @@ val youtubeLinkText =
 
           loadSettingsUI()
 
+            applyTheme()
+
           settingsRepository.saveLastPreset("Default")
+
       }
 
 
@@ -1181,6 +1210,9 @@ val youtubeLinkText =
 
           val preset =
               settingsRepository.loadPreset(name)
+
+          println("DEBUG APPLY PRESET: $name theme=${preset.themeColor}")
+
 
           settings.jawClosedCalibration =
               preset.jawClosedCalibration
@@ -1220,22 +1252,27 @@ val youtubeLinkText =
           settingsRepository.saveLastPreset(name)
 
           loadSettingsUI()
+
+            applyTheme()
+
       }
 
 
 
     private fun getThemeColor(): Int {
         return when (settings.themeColor.lowercase()) {
-            "pink" -> Color.parseColor("#EA547F")
-            "purple" -> Color.parseColor("#8A7CE2")
-            "cyan" -> Color.parseColor("#50C5B7")
-            "green" -> Color.parseColor("#8EE55B")
-            "gold" -> Color.parseColor("#D4B358")
-            else -> Color.parseColor("#EA547F")
+            "pink" -> Color.parseColor("#9A324F")
+            "purple" -> Color.parseColor("#5C3FA2")
+            "cyan" -> Color.parseColor("#32867E")
+            "green" -> Color.parseColor("#599834")
+            "gold" -> Color.parseColor("#B56C2C")
+            else -> Color.parseColor("#9A324F")
         }
     }
 
     private fun applyTheme() {
+
+          println("DEBUG APPLY THEME: ${settings.themeColor} start=${::startButton.isInitialized} camera=${::cameraButton.isInitialized} settings=${::settingsButton.isInitialized}")
 
         val color = getThemeColor()
 
@@ -1246,9 +1283,27 @@ val youtubeLinkText =
 
         cameraButton.setTextColor(color)
         settingsButton.setTextColor(color)
+
+        val buttonDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 12f
+            setColor(color)
+            setStroke(1, Color.WHITE)
+        }
+
+          if (::savePresetButton.isInitialized) {
+              savePresetButton.setBackgroundColor(color)
+              loadPresetButton.setBackgroundColor(color)
+              recalibrateButton.setBackgroundColor(color)
+              defaultCalibrationButton.setBackgroundColor(color)
+          }
+
+
     }
 
 private fun loadSettingsUI() {
+
+            applyTheme()
 
           midiChannelInput.setText(settings.midiChannel.toString())
           midiCCInput.setText(settings.midiCC.toString())
@@ -1316,6 +1371,7 @@ private fun loadSettingsUI() {
           )
 
           updateWifiSettingsVisibility()
+
 
     }
 

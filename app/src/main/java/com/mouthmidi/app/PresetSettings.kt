@@ -23,5 +23,5 @@ data class PresetSettings(
 
     var holdLastValue: Boolean = true,
 
-    var themeColor: String = "orange"
+    var themeColor: String = "pink"
 )

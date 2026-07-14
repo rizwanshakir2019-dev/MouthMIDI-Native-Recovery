@@ -98,8 +98,8 @@ class SettingsRepository(
             themeColor =
                 prefs.getString(
                     "themeColor",
-                    "orange"
-                ) ?: "orange",
+                    "pink"
+                ) ?: "pink",
 
             flashlightEnabled =
                 prefs.getBoolean(
@@ -269,7 +269,7 @@ class SettingsRepository(
         name: String
     ): PresetSettings {
 
-          println("DEBUG LOAD PRESET: $name")
+          println("DEBUG LOAD PRESET: $name theme=${presetPrefs.getString("${name}_themeColor","missing")}")
 
         return PresetSettings(
 
@@ -305,8 +305,8 @@ class SettingsRepository(
                 presetPrefs.getBoolean("${name}_holdLastValue",true),
 
             themeColor =
-                presetPrefs.getString("${name}_themeColor","orange")
-                    ?: "orange"
+                presetPrefs.getString("${name}_themeColor","pink")
+                    ?: "pink"
         )
     }
 

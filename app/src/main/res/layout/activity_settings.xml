@@ -36,18 +36,22 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"/>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/savePresetButton"
+            android:backgroundTint="@null"
+            android:background="@drawable/settings_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Preset"
             android:layout_marginTop="12dp"/>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/loadPresetButton"
+            android:backgroundTint="@null"
+            android:background="@drawable/settings_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load Preset"/>
+            android:text="Delete Preset"/>
 
 
 
@@ -98,6 +102,15 @@
             android:inputType="number"
             android:text="1"/>
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/settings_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
           <TextView
               android:layout_width="wrap_content"
@@ -131,34 +144,42 @@
             android:textSize="16sp"
             android:layout_marginTop="12dp"/>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/recalibrateButton"
+            android:backgroundTint="@null"
+            android:background="@drawable/settings_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recalibrate Mouth Range"
             android:layout_marginTop="12dp"/>
 
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/defaultCalibrationButton"
+            android:backgroundTint="@null"
+            android:background="@drawable/settings_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="↺ Reset Calibration"
             android:layout_marginTop="8dp"/>
 
+        </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/settings_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
-
-        
-
-
-                  <TextView
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Tracking"
-              android:textStyle="bold"
-              android:textSize="18sp"
-              android:layout_marginTop="24dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tracking"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginTop="24dp"/>
 
           <View
               android:layout_width="match_parent"
@@ -268,6 +289,14 @@
             android:textSize="12sp"
             android:layout_marginStart="16dp"
             android:layout_marginBottom="8dp"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/settings_card"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
                   <TextView
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
@@ -487,8 +516,10 @@
                     android:inputType="text"
                     android:text="MouthMIDI"/>
 
-                <Button
+                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/wifiConnectButton"
+                    android:backgroundTint="@null"
+                    android:background="@drawable/settings_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Coming Soon"
