@@ -10,6 +10,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.WindowManager
 import android.view.View
+import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.AdapterView
@@ -24,6 +25,7 @@ import android.widget.Spinner
 import android.widget.ArrayAdapter
 import android.app.AlertDialog
 import android.widget.Button
+import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -60,6 +62,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var defaultCalibrationButton: Button
     private lateinit var calibrationStatusText: TextView
     private lateinit var settingsScrollView: ScrollView
+    private lateinit var settingsRootLayout: LinearLayout
 
     private lateinit var presetSpinner: Spinner
     private var updatingPresetSpinner = false
@@ -708,6 +711,8 @@ class MainActivity : AppCompatActivity() {
 
         val view = settingsView ?: return
 
+        settingsRootLayout = view.findViewById(R.id.settingsRootLayout)
+
         settingsScrollView =
             view.findViewById(R.id.settingsScrollView)
 
@@ -761,6 +766,8 @@ class MainActivity : AppCompatActivity() {
 
 
         val view = settingsView ?: return
+
+        settingsRootLayout = view.findViewById(R.id.settingsRootLayout)
 
         flashlightSwitch = view.findViewById(R.id.flashlightSwitch)
 
@@ -990,6 +997,16 @@ val youtubeLinkText =
                             name,
                             currentPresetSettings()
                         )
+
+                        refreshPresetSpinner()
+
+                        val adapter = presetSpinner.adapter
+                        for (i in 0 until adapter.count) {
+                            if (adapter.getItem(i).toString() == name) {
+                                presetSpinner.setSelection(i)
+                                break
+                            }
+                        }
 
           settingsRepository.saveLastPreset(name)
 
@@ -1270,11 +1287,69 @@ val youtubeLinkText =
         }
     }
 
+
+    private fun applyCardTheme(view: View, color: Int) {
+
+        if (view.background is GradientDrawable) {
+
+            val drawable =
+                view.background as GradientDrawable
+
+            drawable.setColor(color)
+        }
+
+        if (view is ViewGroup) {
+
+            for (i in 0 until view.childCount) {
+
+                applyCardTheme(
+                    view.getChildAt(i),
+                    color
+                )
+            }
+        }
+    }
+
+
     private fun applyTheme() {
 
           println("DEBUG APPLY THEME: ${settings.themeColor} start=${::startButton.isInitialized} camera=${::cameraButton.isInitialized} settings=${::settingsButton.isInitialized}")
 
         val color = getThemeColor()
+
+        val cardColor =
+            when (settings.themeColor.lowercase()) {
+                "pink" ->
+                    Color.parseColor("#662B1825")
+
+                "purple" ->
+                    Color.parseColor("#66302055")
+
+                "cyan" ->
+                    Color.parseColor("#66204444")
+
+                "green" ->
+                    Color.parseColor("#66274420")
+
+                "gold" ->
+                    Color.parseColor("#66452D18")
+
+                else ->
+                    Color.parseColor("#66202030")
+            }
+
+        if (::settingsRootLayout.isInitialized) {
+            applyCardTheme(
+                settingsRootLayout,
+                cardColor
+            )
+        }
+
+        val overlayColor = Color.parseColor("#A0202020")
+
+        if (::settingsRootLayout.isInitialized) {
+            settingsRootLayout.setBackgroundColor(overlayColor)
+        }
 
         ccValue.setTextColor(color)
         midiStatus.setTextColor(color)
@@ -1291,12 +1366,19 @@ val youtubeLinkText =
             setStroke(1, Color.WHITE)
         }
 
-          if (::savePresetButton.isInitialized) {
-              savePresetButton.setBackgroundColor(color)
-              loadPresetButton.setBackgroundColor(color)
-              recalibrateButton.setBackgroundColor(color)
-              defaultCalibrationButton.setBackgroundColor(color)
-          }
+        if (::savePresetButton.isInitialized) {
+            savePresetButton.background =
+                buttonDrawable.constantState?.newDrawable()
+
+            loadPresetButton.background =
+                buttonDrawable.constantState?.newDrawable()
+
+            recalibrateButton.background =
+                buttonDrawable.constantState?.newDrawable()
+
+            defaultCalibrationButton.background =
+                buttonDrawable.constantState?.newDrawable()
+        }
 
 
     }
