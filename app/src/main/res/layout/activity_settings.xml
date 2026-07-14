@@ -23,11 +23,6 @@
             android:layout_marginBottom="12dp"
             android:background="#666666"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Current Preset"/>
-
         <Spinner
             android:id="@+id/presetSpinner"
             android:layout_width="match_parent"
@@ -311,7 +306,8 @@
                 <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Accent Color"
+            android:text="Theme Color"
+              android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="24dp"/>
 
@@ -367,6 +363,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Transport"
+              android:textSize="18sp"
             android:textStyle="bold"
             android:layout_marginTop="24dp"/>
 
@@ -394,7 +391,47 @@
                 android:layout_height="wrap_content"
                 android:text="Wi-Fi MIDI"/>
 
+
         </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="start|center_vertical"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/rs_logo"
+                android:contentDescription="Rizwan Shakir Music Logo"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Developed by Rizwan Shakir Music©"
+                    android:textSize="12sp"/>
+
+                <TextView
+                    android:id="@+id/youtubeLinkText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="YouTube Channel"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 

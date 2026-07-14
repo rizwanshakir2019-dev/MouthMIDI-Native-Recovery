@@ -3,6 +3,8 @@ package com.mouthmidi.app
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.Intent
+import android.net.Uri
+import android.graphics.Paint
 import android.os.Bundle
 import android.view.WindowManager
 import android.view.View
@@ -857,6 +859,22 @@ class MainActivity : AppCompatActivity() {
             settings.themeColor = "purple"
             settingsRepository.save(settings)
         }
+
+        val youtubeLinkText =
+            view.findViewById<TextView>(R.id.youtubeLinkText)
+
+        youtubeLinkText.paintFlags =
+            youtubeLinkText.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+
+        youtubeLinkText.setOnClickListener {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://www.youtube.com/@rizwanshakir")
+                )
+            )
+        }
+
 
 
         defaultCalibrationButton.setOnClickListener {
