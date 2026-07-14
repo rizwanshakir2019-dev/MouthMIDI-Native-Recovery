@@ -12,7 +12,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PRESET"
+            android:text="Presets"
             android:textStyle="bold"
             android:textSize="18sp"/>
 
@@ -51,9 +51,23 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MIDI Channel"
+            android:text="MIDI"
+            android:textStyle="bold"
+            android:textSize="18sp"
             android:layout_marginTop="24dp"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            android:background="#666666"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Channel"
+            android:layout_marginTop="12dp"/>
         <EditText
             android:id="@+id/midiChannelInput"
             android:layout_width="match_parent"
@@ -64,7 +78,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MIDI CC Number"
+            android:text="CC Number"
             android:layout_marginTop="12dp"/>
 
         <EditText
@@ -75,11 +89,11 @@
             android:text="1"/>
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jaw Closed Calibration"
-            android:layout_marginTop="24dp"/>
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Closed Mouth Reference"
+              android:layout_marginTop="24dp"/>
 
         <TextView
             android:id="@+id/jawClosedCalibrationInput"
@@ -91,7 +105,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Jaw Open Calibration"/>
+            android:text="Open Mouth Reference"/>
 
         <TextView
             android:id="@+id/jawOpenCalibrationInput"
@@ -112,7 +126,7 @@
             android:id="@+id/recalibrateButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Recalibrate"
+            android:text="Recalibrate Mouth Range"
             android:layout_marginTop="12dp"/>
 
 
@@ -120,22 +134,31 @@
             android:id="@+id/defaultCalibrationButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="↺ Default Calibration"
+            android:text="↺ Reset Calibration"
             android:layout_marginTop="8dp"/>
 
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="PRESET"
-            android:textStyle="bold"
-            android:layout_marginTop="24dp"/>
 
         
 
 
-        <TextView
+                  <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Tracking"
+              android:textStyle="bold"
+              android:textSize="18sp"
+              android:layout_marginTop="24dp"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="1dp"
+              android:layout_marginTop="8dp"
+              android:layout_marginBottom="12dp"
+              android:background="#666666"/>
+
+<TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Smoothing"/>
@@ -189,23 +212,6 @@
             android:text="127"/>
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sensitivity"
-            android:layout_marginTop="12dp"/>
-
-        <SeekBar
-            android:id="@+id/sensitivitySeekBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="200"/>
-
-        <TextView
-            android:id="@+id/sensitivityValueText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1.00"/>
 
 
         <TextView
@@ -232,17 +238,56 @@
               android:layout_height="wrap_content"
               android:text="Invert Mouth Control"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(open mouth = lower CC values)"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="8dp"/>
+
           <Switch
               android:id="@+id/holdLastValueSwitch"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:text="Hold Last MIDI Value"/>
-        <Switch
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(keep last CC when tracking stops)"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="8dp"/>
+                  <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Device"
+              android:textStyle="bold"
+              android:textSize="18sp"
+              android:layout_marginTop="24dp"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="1dp"
+              android:layout_marginTop="8dp"
+              android:layout_marginBottom="12dp"
+              android:background="#666666"/>
+
+<Switch
             android:id="@+id/flashlightSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Flashlight On/Off (for rear camera)"
+            android:text="Flashlight"
             android:layout_marginTop="24dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(for rear camera only)"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="8dp"/>
 
 
 
@@ -258,9 +303,24 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="THEME COLOR"
+            android:text="(requires app restart)"
+            android:textSize="12sp"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="8dp"/>
+
+                <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Accent Color"
             android:textStyle="bold"
             android:layout_marginTop="24dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            android:background="#666666"/>
 
         <LinearLayout
             android:id="@+id/themeColorContainer"
@@ -309,6 +369,13 @@
             android:text="Transport"
             android:textStyle="bold"
             android:layout_marginTop="24dp"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="1dp"
+              android:layout_marginTop="8dp"
+              android:layout_marginBottom="12dp"
+              android:background="#666666"/>
 
         <RadioGroup
             android:id="@+id/transportGroup"
