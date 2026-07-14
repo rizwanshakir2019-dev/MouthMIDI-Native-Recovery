@@ -19,6 +19,17 @@ class SettingsRepository(
             Context.MODE_PRIVATE
         )
 
+    fun getLastPreset(): String {
+        return prefs.getString("lastPresetName", "Default") ?: "Default"
+    }
+
+    fun saveLastPreset(name: String) {
+        prefs.edit()
+            .putString("lastPresetName", name)
+            .apply()
+    }
+
+
     fun load(): MouthMidiSettings {
 
         return MouthMidiSettings(
@@ -65,11 +76,6 @@ class SettingsRepository(
                     0f
                 ),
 
-            sensitivity =
-                prefs.getFloat(
-                    "sensitivity",
-                    1.0f
-                ),
 
             deadZone =
                 prefs.getFloat(
@@ -154,10 +160,6 @@ class SettingsRepository(
                 settings.smoothing
             )
 
-            .putFloat(
-                "sensitivity",
-                settings.sensitivity
-            )
 
             .putFloat(
                 "deadZone",
@@ -215,7 +217,6 @@ class SettingsRepository(
             .putInt("${name}_midiChannel", settings.midiChannel)
 
             .putFloat("${name}_smoothing", settings.smoothing)
-            .putFloat("${name}_sensitivity", settings.sensitivity)
             .putFloat("${name}_deadZone", settings.deadZone)
 
             .putBoolean("${name}_invert", settings.invert)
@@ -226,12 +227,16 @@ class SettingsRepository(
             .putBoolean("${name}_exists", true)
 
             .apply()
+
+          println("DEBUG SAVE PRESET: $name midiCC=${settings.midiCC} channel=${settings.midiChannel} smoothing=${settings.smoothing} theme=${settings.themeColor}")
     }
 
 
     fun loadPreset(
         name: String
     ): PresetSettings {
+
+          println("DEBUG LOAD PRESET: $name")
 
         return PresetSettings(
 
@@ -256,8 +261,6 @@ class SettingsRepository(
             smoothing =
                 presetPrefs.getFloat("${name}_smoothing",0f),
 
-            sensitivity =
-                presetPrefs.getFloat("${name}_sensitivity",1f),
 
             deadZone =
                 presetPrefs.getFloat("${name}_deadZone",0f),
@@ -273,6 +276,28 @@ class SettingsRepository(
                     ?: "orange"
         )
     }
+
+
+
+      fun deletePreset(
+          name: String
+      ) {
+
+          presetPrefs.edit()
+              .remove("${name}_jawClosedCalibration")
+              .remove("${name}_jawOpenCalibration")
+              .remove("${name}_minCC")
+              .remove("${name}_maxCC")
+              .remove("${name}_midiCC")
+              .remove("${name}_midiChannel")
+              .remove("${name}_smoothing")
+              .remove("${name}_deadZone")
+              .remove("${name}_invert")
+              .remove("${name}_holdLastValue")
+              .remove("${name}_themeColor")
+              .remove("${name}_exists")
+              .apply()
+      }
 
 
     fun getPresetNames(): List<String> {

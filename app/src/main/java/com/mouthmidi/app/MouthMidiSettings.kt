@@ -16,9 +16,8 @@ data class MouthMidiSettings(
 
     var smoothing: Float = 0f,
 
-    var sensitivity: Float = 1.0f,
-
     var deadZone: Float = 0f,
+
 
     var invert: Boolean = false,
 
