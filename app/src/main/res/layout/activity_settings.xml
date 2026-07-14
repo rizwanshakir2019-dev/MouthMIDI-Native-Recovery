@@ -448,15 +448,22 @@
                   android:text="Session Name"
                   android:layout_marginTop="8dp"/>
 
-              <EditText
-                  android:id="@+id/wifiSessionInput"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:inputType="text"
-                  android:text="MouthMIDI"/>
+                <EditText
+                    android:id="@+id/wifiSessionInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:text="MouthMIDI"/>
 
-          </LinearLayout>
+                <Button
+                    android:id="@+id/wifiConnectButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Coming Soon"
+                    android:layout_marginTop="12dp"/>
 
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
