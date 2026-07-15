@@ -24,10 +24,25 @@ class SmoothingProcessor(
         input: Float
     ): Float {
 
+        val delta =
+            kotlin.math.abs(input - previous)
+
+        val adaptiveAmount =
+            when {
+                delta > 0.25f ->
+                    amount * 0.25f
+
+                delta > 0.10f ->
+                    amount * 0.50f
+
+                else ->
+                    amount
+            }
+
         previous =
             previous +
             (input - previous) *
-            (1f - amount)
+            (1f - adaptiveAmount)
 
         return previous
     }

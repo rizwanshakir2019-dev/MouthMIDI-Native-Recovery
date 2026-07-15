@@ -1780,7 +1780,7 @@ private fun loadSettingsUI() {
                 ?.coerceIn(0,127) ?: 1
 
         settings.smoothing =
-            smoothingSeekBar.progress / 100f
+            (smoothingSeekBar.progress / 100f) * 0.85f
 
         settings.minCC =
             minCCSeekBar.progress.coerceIn(0,127)
