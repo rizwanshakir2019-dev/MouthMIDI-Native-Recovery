@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.widget.FrameLayout
+import android.util.Size
 import android.widget.AdapterView
 import android.widget.Switch
 import android.widget.EditText
@@ -396,8 +397,9 @@ class MainActivity : AppCompatActivity() {
                         ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888
                     )
                     .setBackpressureStrategy(
-                        ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-                    )
+                          ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
+                      )
+                      .setTargetResolution(Size(640, 480))
                     .build()
 
 
@@ -707,6 +709,7 @@ class MainActivity : AppCompatActivity() {
         value:Int
     ){
 
+        if (value == lastCC) return
         lastCC = value
 
         midiOutputManager.sendCC(
