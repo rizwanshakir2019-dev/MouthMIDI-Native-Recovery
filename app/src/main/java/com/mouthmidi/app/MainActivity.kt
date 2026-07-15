@@ -26,6 +26,10 @@ import android.widget.ArrayAdapter
 import android.app.AlertDialog
 import android.widget.Button
 import android.widget.LinearLayout
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -71,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var deviceCard: View
     private lateinit var themeCard: View
     private lateinit var transportCard: View
+    private lateinit var mainOverlay: View
 
     private lateinit var presetSpinner: Spinner
     private var updatingPresetSpinner = false
@@ -152,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             if (granted) {
                 startCamera()
             } else {
-                faceStatus.text = "● Camera Denied"
+                faceStatus.text = statusText(Color.GRAY, "Camera Denied")
             }
         }
 
@@ -179,11 +184,15 @@ class MainActivity : AppCompatActivity() {
 
             runOnUiThread {
 
-                outputStatus.text =
-                    if (connected)
-                        "USB MIDI✅"
-                    else
-                        "No MIDI"
+                  outputStatus.text =
+                      if (connected) {
+                          if (settings.transport == "WIFI")
+                              statusText(Color.GREEN, "WiFi")
+                          else
+                              statusText(Color.GREEN, "USB")
+                      } else {
+                          statusText(Color.GRAY, "No MIDI")
+                      }
 
             }
 
@@ -197,10 +206,11 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        midiStatus.text = "CC${settings.midiCC} CH${settings.midiChannel}"
+        midiStatus.text = "CH${settings.midiChannel} CC${settings.midiCC}"
 
         ccValue = findViewById(R.id.ccValue)
         ccMeter = findViewById(R.id.ccMeter)
+        mainOverlay = findViewById(R.id.mainOverlay)
 
         cameraButton = findViewById(R.id.cameraButton)
         startButton = findViewById(R.id.startButton)
@@ -248,6 +258,32 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.CAMERA
             )
         }
+    }
+
+
+    private fun statusText(
+        dotColor: Int,
+        text: String
+    ): SpannableString {
+
+        val value = "●$text"
+        val spannable = SpannableString(value)
+
+        spannable.setSpan(
+            ForegroundColorSpan(dotColor),
+            0,
+            1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        spannable.setSpan(
+            RelativeSizeSpan(0.65f),
+            0,
+            1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        return spannable
     }
 
 
@@ -426,7 +462,7 @@ class MainActivity : AppCompatActivity() {
             if (result.faceLandmarks().isEmpty()) {
 
                 faceStatus.text =
-                    "● No Face"
+                    statusText(Color.GRAY, "No Face")
 
                 if (settings.holdLastValue) {
                     updateCC(lastCC)
@@ -439,7 +475,7 @@ class MainActivity : AppCompatActivity() {
 
 
             faceStatus.text =
-                "● Face:✅"
+                statusText(Color.GREEN, "Face")
 
 
             val landmarks =
@@ -1607,7 +1643,7 @@ private fun loadSettingsUI() {
         smoothingProcessor = SmoothingProcessor(settings.smoothing)
 
         midiStatus.text =
-            "CC${settings.midiCC} CH${settings.midiChannel}"
+            "CH${settings.midiChannel} CC${settings.midiCC}"
     }
 
 }
