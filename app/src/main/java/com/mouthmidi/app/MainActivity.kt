@@ -76,6 +76,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var themeCard: View
     private lateinit var transportCard: View
     private lateinit var mainOverlay: View
+    private lateinit var statusBar: View
 
     private lateinit var presetSpinner: Spinner
     private var updatingPresetSpinner = false
@@ -211,6 +212,7 @@ class MainActivity : AppCompatActivity() {
         ccValue = findViewById(R.id.ccValue)
         ccMeter = findViewById(R.id.ccMeter)
         mainOverlay = findViewById(R.id.mainOverlay)
+        statusBar = findViewById(R.id.statusBar)
 
         cameraButton = findViewById(R.id.cameraButton)
         startButton = findViewById(R.id.startButton)
@@ -1401,6 +1403,21 @@ val youtubeLinkText =
     }
 
 
+    private fun getOverlayColor(cardColor: Int): Int {
+
+        val r = (Color.red(cardColor) * 0.55).toInt()
+        val g = (Color.green(cardColor) * 0.55).toInt()
+        val b = (Color.blue(cardColor) * 0.55).toInt()
+
+        return Color.argb(
+            220,
+            r,
+            g,
+            b
+        )
+    }
+
+
     private fun applyTheme() {
 
           println("DEBUG APPLY THEME: ${settings.themeColor} start=${::startButton.isInitialized} camera=${::cameraButton.isInitialized} settings=${::settingsButton.isInitialized}")
@@ -1470,7 +1487,15 @@ val youtubeLinkText =
 
         }
 
-        val overlayColor = Color.parseColor("#CC111111")
+        val overlayColor = getOverlayColor(cardColor)
+
+        if (::mainOverlay.isInitialized) {
+            mainOverlay.setBackgroundColor(overlayColor)
+        }
+
+        if (::statusBar.isInitialized) {
+            statusBar.setBackgroundColor(overlayColor)
+        }
 
         if (::settingsContainer.isInitialized) {
             settingsContainer.setBackgroundColor(overlayColor)
