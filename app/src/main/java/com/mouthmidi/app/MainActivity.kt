@@ -64,6 +64,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsScrollView: ScrollView
     private lateinit var settingsRootLayout: LinearLayout
 
+    private lateinit var presetCard: View
+    private lateinit var midiCard: View
+    private lateinit var calibrationCard: View
+    private lateinit var trackingCard: View
+    private lateinit var deviceCard: View
+    private lateinit var themeCard: View
+    private lateinit var transportCard: View
+
     private lateinit var presetSpinner: Spinner
     private var updatingPresetSpinner = false
     private lateinit var savePresetButton: Button
@@ -669,6 +677,7 @@ class MainActivity : AppCompatActivity() {
 
         if (!::settingsContainer.isInitialized) {
             settingsContainer = findViewById(R.id.settingsContainer)
+            applyTheme()
         }
 
         if (settingsView == null) {
@@ -691,6 +700,10 @@ class MainActivity : AppCompatActivity() {
 
             setupSettingsControls()
 
+            settingsView?.post {
+                                applyTheme()
+            }
+
 
             setupSettingsSwipe()
         }
@@ -702,6 +715,7 @@ class MainActivity : AppCompatActivity() {
 
         } else {
 
+            settingsContainer.alpha = 1f
             settingsContainer.visibility = View.VISIBLE
         }
     }
@@ -768,6 +782,15 @@ class MainActivity : AppCompatActivity() {
         val view = settingsView ?: return
 
         settingsRootLayout = view.findViewById(R.id.settingsRootLayout)
+
+        presetCard = view.findViewById(R.id.presetCard)
+        midiCard = view.findViewById(R.id.midiCard)
+        calibrationCard = view.findViewById(R.id.calibrationCard)
+        trackingCard = view.findViewById(R.id.trackingCard)
+        deviceCard = view.findViewById(R.id.deviceCard)
+        themeCard = view.findViewById(R.id.themeCard)
+        transportCard = view.findViewById(R.id.transportCard)
+
 
         flashlightSwitch = view.findViewById(R.id.flashlightSwitch)
 
@@ -1311,11 +1334,38 @@ val youtubeLinkText =
     }
 
 
+
+    private fun setCardBackground(
+        view: View,
+        color: Int
+    ) {
+
+        val drawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 16f
+            setColor(color)
+            setStroke(
+                1,
+                Color.parseColor("#444444")
+            )
+        }
+
+        view.background = drawable
+    }
+
+
     private fun applyTheme() {
 
           println("DEBUG APPLY THEME: ${settings.themeColor} start=${::startButton.isInitialized} camera=${::cameraButton.isInitialized} settings=${::settingsButton.isInitialized}")
 
         val color = getThemeColor()
+
+        println(
+            "CARD DEBUG preset=" +
+            ::presetCard.isInitialized +
+            " midi=" +
+            ::midiCard.isInitialized
+        )
 
         val cardColor =
             when (settings.themeColor.lowercase()) {
@@ -1338,17 +1388,53 @@ val youtubeLinkText =
                     Color.parseColor("#66202030")
             }
 
-        if (::settingsRootLayout.isInitialized) {
-            applyCardTheme(
-                settingsRootLayout,
-                cardColor
+        if (::presetCard.isInitialized) {
+
+            println("THEME APPLYING CARD COLORS = $cardColor")
+
+            println(
+                "CARD SIZE preset=" +
+                presetCard.width +
+                " height=" +
+                presetCard.height
             )
+
+
+            println("THEME APPLYING CARD COLORS = $cardColor")
+
+            println(
+                "CARD SIZE preset=" +
+                presetCard.width +
+                " height=" +
+                presetCard.height
+            )
+
+            setCardBackground(presetCard, cardColor)
+            setCardBackground(midiCard, cardColor)
+            setCardBackground(calibrationCard, cardColor)
+            setCardBackground(trackingCard, cardColor)
+            setCardBackground(deviceCard, cardColor)
+            setCardBackground(themeCard, cardColor)
+            setCardBackground(transportCard, cardColor)
+
+        } else {
+
+            println("CARD VIEWS NOT INITIALIZED")
+
         }
 
-        val overlayColor = Color.parseColor("#A0202020")
+        val overlayColor = Color.parseColor("#CC111111")
+
+        if (::settingsContainer.isInitialized) {
+            settingsContainer.setBackgroundColor(overlayColor)
+        }
+
+        if (::settingsScrollView.isInitialized) {
+            settingsScrollView.setBackgroundColor(Color.TRANSPARENT)
+        }
 
         if (::settingsRootLayout.isInitialized) {
-            settingsRootLayout.setBackgroundColor(overlayColor)
+            settingsRootLayout.setBackgroundColor(Color.TRANSPARENT)
         }
 
         ccValue.setTextColor(color)
