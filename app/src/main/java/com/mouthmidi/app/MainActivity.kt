@@ -1148,7 +1148,7 @@ val youtubeLinkText =
               object : SeekBar.OnSeekBarChangeListener {
                   override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                       smoothingValueText.text =
-                          String.format("%.2f", progress / 0.91f)
+                          String.format("%.2f", progress / 100f)
                   }
                   override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                   override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -1180,7 +1180,7 @@ val youtubeLinkText =
               object : SeekBar.OnSeekBarChangeListener {
                   override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                       deadZoneValueText.text =
-                          String.format("%.2f", progress / 0.91f)
+                          String.format("%.2f", progress / 100f)
                   }
                   override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                   override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -1325,7 +1325,7 @@ val youtubeLinkText =
           settings.midiChannel =
               preset.midiChannel
 
-          settings.smoothing =
+        settings.smoothing =
               preset.smoothing
 
           settings.deadZone =
@@ -1735,7 +1735,7 @@ private fun loadSettingsUI() {
                 ?.coerceIn(0,127) ?: 1
 
         settings.smoothing =
-            smoothingSeekBar.progress / 0.91f
+            smoothingSeekBar.progress / 100f
 
         settings.minCC =
             minCCSeekBar.progress.coerceIn(0,127)
@@ -1743,8 +1743,8 @@ private fun loadSettingsUI() {
         settings.maxCC =
             maxCCSeekBar.progress.coerceIn(0,127)
 
-        settings.deadZone =
-            deadZoneSeekBar.progress / 0.91f
+          settings.deadZone =
+              deadZoneSeekBar.progress / 100f
 
 
         settings.invert =
@@ -1773,7 +1773,7 @@ private fun loadSettingsUI() {
 
         settingsRepository.save(settings)
 
-        smoothingProcessor = SmoothingProcessor(settings.smoothing)
+          smoothingProcessor.setAmount(settings.smoothing)
 
         midiStatus.text =
             "CH${settings.midiChannel} CC${settings.midiCC}"
