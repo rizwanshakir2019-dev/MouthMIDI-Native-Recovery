@@ -13,6 +13,7 @@ class MouthMeterView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val markerPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var value = 0f
 
@@ -33,6 +34,22 @@ class MouthMeterView @JvmOverloads constructor(
             18f,18f,
             paint
         )
+
+
+        markerPaint.color = Color.argb(70, 255, 255, 255)
+        markerPaint.strokeWidth = 1f
+
+        for (level in listOf(0.25f, 0.5f, 0.75f)) {
+            val y = h - (h * level)
+
+            canvas.drawLine(
+                0f,
+                y,
+                w,
+                y,
+                markerPaint
+            )
+        }
 
 
         val fill = h * value / 127f
