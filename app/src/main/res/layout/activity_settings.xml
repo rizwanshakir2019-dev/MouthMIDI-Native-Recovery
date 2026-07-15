@@ -38,8 +38,7 @@
         <Spinner
             android:id="@+id/presetSpinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"/>
+            android:layout_height="wrap_content"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/savePresetButton"
@@ -48,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Preset"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="8dp"/>
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/loadPresetButton"
@@ -57,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Delete Preset"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="8dp"/>
         </LinearLayout>
 
 
@@ -80,19 +79,19 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp"
             android:background="#666666"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Channel"
-            android:layout_marginTop="12dp"/>
+            android:text="Channel"/>
         <EditText
             android:id="@+id/midiChannelInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+              android:layout_marginTop="8dp"
             android:inputType="number"
             android:text="1"/>
 
@@ -100,7 +99,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CC Number"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="8dp"/>
 
         <EditText
             android:id="@+id/midiCCInput"
@@ -137,8 +136,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Closed Mouth Reference"
-            android:layout_marginTop="12dp"/>
+            android:text="Closed Mouth Reference"/>
 
 
         <TextView
@@ -174,7 +172,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recalibrate Mouth Range"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="16dp"/>
 
 
         <androidx.appcompat.widget.AppCompatButton
@@ -207,7 +205,7 @@
           <View
               android:layout_width="match_parent"
               android:layout_height="1dp"
-              android:layout_marginTop="12dp"
+              android:layout_marginTop="8dp"
               android:layout_marginBottom="12dp"
               android:background="#666666"/>
 
@@ -331,7 +329,7 @@
           <View
               android:layout_width="match_parent"
               android:layout_height="1dp"
-              android:layout_marginTop="12dp"
+              android:layout_marginTop="8dp"
               android:layout_marginBottom="12dp"
               android:background="#666666"/>
 
@@ -339,8 +337,7 @@
             android:id="@+id/flashlightSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Flashlight"
-            android:layout_marginTop="12dp"/>
+            android:text="Flashlight"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -463,7 +460,7 @@
           <View
               android:layout_width="match_parent"
               android:layout_height="1dp"
-              android:layout_marginTop="12dp"
+              android:layout_marginTop="8dp"
               android:layout_marginBottom="12dp"
               android:background="#666666"/>
 
