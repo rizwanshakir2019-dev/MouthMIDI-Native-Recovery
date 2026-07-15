@@ -232,13 +232,30 @@ class MainActivity : AppCompatActivity() {
                     bottomHeight -
                     (24 * resources.displayMetrics.density).toInt()
 
+                val isLandscape =
+                    resources.configuration.orientation ==
+                        android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+                val topOffset =
+                    if (isLandscape) {
+                        (availableHeight * 0.322f).toInt()
+                    } else {
+                        (availableHeight * 0.102f).toInt()
+                    }
+
+                ccMeter.translationY = -topOffset.toFloat()
+
                 ccMeter.layoutParams =
                     ccMeter.layoutParams.apply {
-                        width = (34 * resources.displayMetrics.density).toInt()
+                        width = (26 * resources.displayMetrics.density).toInt()
                         height = availableHeight
                     }
 
                 ccMeter.requestLayout()
+
+                ccMeter.post {
+                    midiStatus.text = "W${ccMeter.width}"
+                }
 
             }
 
