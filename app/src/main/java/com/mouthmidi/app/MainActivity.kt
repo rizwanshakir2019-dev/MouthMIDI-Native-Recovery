@@ -1144,7 +1144,7 @@ val youtubeLinkText =
               object : SeekBar.OnSeekBarChangeListener {
                   override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                       smoothingValueText.text =
-                          String.format("%.2f", progress / 100f)
+                          String.format("%.2f", progress / 0.91f)
                   }
                   override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                   override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -1176,7 +1176,7 @@ val youtubeLinkText =
               object : SeekBar.OnSeekBarChangeListener {
                   override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                       deadZoneValueText.text =
-                          String.format("%.2f", progress / 100f)
+                          String.format("%.2f", progress / 0.91f)
                   }
                   override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                   override fun onStopTrackingTouch(seekBar: SeekBar?) {}
@@ -1418,6 +1418,43 @@ val youtubeLinkText =
     }
 
 
+    private fun updateThemeSelection() {
+
+        val buttons = listOf(
+            themeOrangeButton,
+            themeYellowButton,
+            themeGreenButton,
+            themeBlueButton,
+            themePurpleButton
+        )
+
+
+        val selected =
+            when (settings.themeColor.lowercase()) {
+
+                "pink" -> themeOrangeButton
+                "purple" -> themeYellowButton
+                "cyan" -> themeGreenButton
+                "green" -> themeBlueButton
+                "gold" -> themePurpleButton
+
+                else -> themeOrangeButton
+            }
+
+
+        buttons.forEach { button ->
+
+            if (button == selected) {
+                button.scaleX = 1.0f
+                button.scaleY = 1.0f
+            } else {
+                button.scaleX = 0.91f
+                button.scaleY = 0.91f
+            }
+        }
+    }
+
+
     private fun getButtonFillColor(): Int {
 
         return when (settings.themeColor.lowercase()) {
@@ -1591,11 +1628,23 @@ val youtubeLinkText =
         }
 
 
-    }
+    
+          if (
+              ::themeOrangeButton.isInitialized &&
+              ::themeYellowButton.isInitialized &&
+              ::themeGreenButton.isInitialized &&
+              ::themeBlueButton.isInitialized &&
+              ::themePurpleButton.isInitialized
+          ) {
+              updateThemeSelection()
+          }
 
+
+}
 private fun loadSettingsUI() {
 
             applyTheme()
+            updateThemeSelection()
 
           midiChannelInput.setText(settings.midiChannel.toString())
           midiCCInput.setText(settings.midiCC.toString())
@@ -1679,7 +1728,7 @@ private fun loadSettingsUI() {
                 ?.coerceIn(0,127) ?: 1
 
         settings.smoothing =
-            smoothingSeekBar.progress / 100f
+            smoothingSeekBar.progress / 0.91f
 
         settings.minCC =
             minCCSeekBar.progress.coerceIn(0,127)
@@ -1688,7 +1737,7 @@ private fun loadSettingsUI() {
             maxCCSeekBar.progress.coerceIn(0,127)
 
         settings.deadZone =
-            deadZoneSeekBar.progress / 100f
+            deadZoneSeekBar.progress / 0.91f
 
 
         settings.invert =
