@@ -238,9 +238,9 @@ class MainActivity : AppCompatActivity() {
 
                 val topOffset =
                     if (isLandscape) {
-                        (availableHeight * 0.3205f).toInt()
+                        (availableHeight * 0.3186f).toInt()
                     } else {
-                        (availableHeight * 0.1035f).toInt()
+                        (availableHeight * 0.1028f).toInt()
                     }
 
                 ccMeter.translationY = -topOffset.toFloat()
