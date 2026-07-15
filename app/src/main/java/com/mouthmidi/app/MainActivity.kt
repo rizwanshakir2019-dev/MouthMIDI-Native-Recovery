@@ -1418,6 +1418,31 @@ val youtubeLinkText =
     }
 
 
+    private fun getButtonFillColor(): Int {
+
+        return when (settings.themeColor.lowercase()) {
+
+            "pink" ->
+                Color.parseColor("#24131D")
+
+            "purple" ->
+                Color.parseColor("#171022")
+
+            "cyan" ->
+                Color.parseColor("#102126")
+
+            "green" ->
+                Color.parseColor("#102117")
+
+            "gold" ->
+                Color.parseColor("#241D10")
+
+            else ->
+                Color.parseColor("#161620")
+        }
+    }
+
+
     private fun applyTheme() {
 
           println("DEBUG APPLY THEME: ${settings.themeColor} start=${::startButton.isInitialized} camera=${::cameraButton.isInitialized} settings=${::settingsButton.isInitialized}")
@@ -1512,30 +1537,57 @@ val youtubeLinkText =
         ccValue.setTextColor(Color.WHITE)
         midiStatus.setTextColor(Color.WHITE)
 
-        startButton.setBackgroundColor(color)
+        val startButtonDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 38f
+            setColor(color)
+            setStroke(1, Color.WHITE)
+        }
+
+        startButton.backgroundTintList = null
+
+          startButton.background =
+            startButtonDrawable
 
         cameraButton.setTextColor(color)
         settingsButton.setTextColor(color)
 
         val buttonDrawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
+            cornerRadius = 30f
+            setColor(getButtonFillColor())
+            setStroke(1, Color.WHITE)
+        }
+
+        cameraButton.backgroundTintList = null
+        settingsButton.backgroundTintList = null
+
+        cameraButton.background =
+            buttonDrawable.constantState?.newDrawable()
+
+        settingsButton.background =
+            buttonDrawable.constantState?.newDrawable()
+
+        val settingsButtonDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
             cornerRadius = 12f
             setColor(color)
             setStroke(1, Color.WHITE)
         }
 
+
         if (::savePresetButton.isInitialized) {
             savePresetButton.background =
-                buttonDrawable.constantState?.newDrawable()
+                settingsButtonDrawable.constantState?.newDrawable()
 
             loadPresetButton.background =
-                buttonDrawable.constantState?.newDrawable()
+                settingsButtonDrawable.constantState?.newDrawable()
 
             recalibrateButton.background =
-                buttonDrawable.constantState?.newDrawable()
+                settingsButtonDrawable.constantState?.newDrawable()
 
             defaultCalibrationButton.background =
-                buttonDrawable.constantState?.newDrawable()
+                settingsButtonDrawable.constantState?.newDrawable()
         }
 
 
