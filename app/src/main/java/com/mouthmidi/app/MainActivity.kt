@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
     private var updatingPresetSpinner = false
     private lateinit var savePresetButton: Button
     private lateinit var loadPresetButton: Button
+    private lateinit var wifiConnectButton: Button
 
     private lateinit var themeOrangeButton: View
     private lateinit var themeYellowButton: View
@@ -955,6 +956,9 @@ class MainActivity : AppCompatActivity() {
         loadPresetButton =
             view.findViewById(R.id.loadPresetButton)
 
+        wifiConnectButton =
+            view.findViewById(R.id.wifiConnectButton)
+
 
         
 
@@ -1618,6 +1622,9 @@ val youtubeLinkText =
                 settingsButtonDrawable.constantState?.newDrawable()
 
             loadPresetButton.background =
+                settingsButtonDrawable.constantState?.newDrawable()
+
+            wifiConnectButton.background =
                 settingsButtonDrawable.constantState?.newDrawable()
 
             recalibrateButton.background =
