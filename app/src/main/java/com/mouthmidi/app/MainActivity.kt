@@ -1484,8 +1484,8 @@ val youtubeLinkText =
             settingsRootLayout.setBackgroundColor(Color.TRANSPARENT)
         }
 
-        ccValue.setTextColor(color)
-        midiStatus.setTextColor(color)
+        ccValue.setTextColor(Color.WHITE)
+        midiStatus.setTextColor(Color.WHITE)
 
         startButton.setBackgroundColor(color)
 
