@@ -69,18 +69,19 @@
     <!-- Mouth CC meter -->
 
     <LinearLayout
-        android:layout_width="80dp"
+        android:layout_width="64dp"
         android:layout_height="match_parent"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="4dp"
         android:gravity="center"
         android:orientation="vertical">
 
 
         <com.mouthmidi.app.MouthMeterView
             android:id="@+id/ccMeter"
-            android:layout_width="20dp"
-            android:layout_height="300dp"/>
+            android:layout_width="26dp"
+            android:layout_height="420dp"
+            android:alpha="0.76"/>
 
 
     </LinearLayout>
@@ -123,7 +124,7 @@
 
             <Button
                 android:id="@+id/startButton"
-                android:text="▶"
+                android:text="HELLO"
                 android:layout_width="100dp"
                 android:layout_height="75dp"
                 android:layout_marginStart="10dp"

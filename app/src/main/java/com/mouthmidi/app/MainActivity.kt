@@ -208,12 +208,39 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        midiStatus.text = "CH${settings.midiChannel} CC${settings.midiCC}"
 
         ccValue = findViewById(R.id.ccValue)
         ccMeter = findViewById(R.id.ccMeter)
+
         mainOverlay = findViewById(R.id.mainOverlay)
         statusBar = findViewById(R.id.statusBar)
+
+            mainOverlay.post {
+
+                val screenHeight =
+                    resources.displayMetrics.heightPixels
+
+                val topHeight =
+                    statusBar.height
+
+                val bottomHeight =
+                    mainOverlay.height
+
+                val availableHeight =
+                    screenHeight -
+                    topHeight -
+                    bottomHeight -
+                    (24 * resources.displayMetrics.density).toInt()
+
+                ccMeter.layoutParams =
+                    ccMeter.layoutParams.apply {
+                        width = (34 * resources.displayMetrics.density).toInt()
+                        height = availableHeight
+                    }
+
+                ccMeter.requestLayout()
+
+            }
 
         cameraButton = findViewById(R.id.cameraButton)
         startButton = findViewById(R.id.startButton)
@@ -1775,7 +1802,6 @@ private fun loadSettingsUI() {
 
           smoothingProcessor.setAmount(settings.smoothing)
 
-        midiStatus.text =
             "CH${settings.midiChannel} CC${settings.midiCC}"
     }
 
