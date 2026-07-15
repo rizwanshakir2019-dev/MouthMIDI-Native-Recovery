@@ -238,9 +238,9 @@ class MainActivity : AppCompatActivity() {
 
                 val topOffset =
                     if (isLandscape) {
-                        (availableHeight * 0.322f).toInt()
+                        (availableHeight * 0.3205f).toInt()
                     } else {
-                        (availableHeight * 0.102f).toInt()
+                        (availableHeight * 0.1035f).toInt()
                     }
 
                 ccMeter.translationY = -topOffset.toFloat()
@@ -253,9 +253,6 @@ class MainActivity : AppCompatActivity() {
 
                 ccMeter.requestLayout()
 
-                ccMeter.post {
-                    midiStatus.text = "W${ccMeter.width}"
-                }
 
             }
 
