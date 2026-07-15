@@ -58,6 +58,7 @@
             android:layout_height="wrap_content"
             android:text="Delete Preset"
             android:layout_marginTop="8dp"/>
+        </LinearLayout>
 
 
 
@@ -74,8 +75,7 @@
             android:layout_height="wrap_content"
             android:text="MIDI"
             android:textStyle="bold"
-            android:textSize="18sp"
-            android:layout_marginTop="24dp"/>
+            android:textSize="18sp"/>
 
         <View
             android:layout_width="match_parent"
@@ -120,11 +120,26 @@
             android:padding="16dp"
             android:layout_marginBottom="16dp">
 
-          <TextView
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:text="Closed Mouth Reference"
-              android:layout_marginTop="24dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sensitivity"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            android:background="#666666"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Closed Mouth Reference"
+            android:layout_marginTop="24dp"/>
+
 
         <TextView
             android:id="@+id/jawClosedCalibrationInput"
@@ -187,8 +202,7 @@
                 android:layout_height="wrap_content"
                 android:text="Tracking"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginTop="24dp"/>
+                android:textSize="18sp"/>
 
           <View
               android:layout_width="match_parent"
@@ -312,8 +326,7 @@
               android:layout_height="wrap_content"
               android:text="Device"
               android:textStyle="bold"
-              android:textSize="18sp"
-              android:layout_marginTop="24dp"/>
+              android:textSize="18sp"/>
 
           <View
               android:layout_width="match_parent"
@@ -369,10 +382,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Theme Color"
-            android:textSize="18sp"
+            android:text="Theme"
+            android:textSize="18sp"/>
             android:textStyle="bold"
-            android:layout_marginTop="24dp"/>
 
         <View
             android:layout_width="match_parent"
@@ -445,9 +457,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Transport"
-              android:textSize="18sp"
+              android:textSize="18sp"/>
             android:textStyle="bold"
-            android:layout_marginTop="24dp"/>
 
           <View
               android:layout_width="match_parent"
@@ -582,5 +593,4 @@
 
         </LinearLayout>
 
-    </LinearLayout>
 </ScrollView>

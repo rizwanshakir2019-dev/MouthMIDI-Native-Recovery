@@ -791,6 +791,17 @@ class MainActivity : AppCompatActivity() {
         themeCard = view.findViewById(R.id.themeCard)
         transportCard = view.findViewById(R.id.transportCard)
 
+        settingsRootLayout.removeView(themeCard)
+
+        val deviceIndex =
+            settingsRootLayout.indexOfChild(deviceCard)
+
+        settingsRootLayout.addView(
+            themeCard,
+            deviceIndex
+        )
+
+
 
         flashlightSwitch = view.findViewById(R.id.flashlightSwitch)
 
