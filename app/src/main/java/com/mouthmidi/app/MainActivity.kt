@@ -180,6 +180,7 @@ class MainActivity : AppCompatActivity() {
         previewView = findViewById(R.id.cameraPreview)
         faceStatus = findViewById(R.id.faceStatus)
         midiStatus = findViewById(R.id.midiStatus)
+        midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
         outputStatus = findViewById(R.id.outputStatus)
 
         midiOutputManager = MidiOutputManager(this) { connected ->
@@ -1816,7 +1817,7 @@ private fun loadSettingsUI() {
 
           smoothingProcessor.setAmount(settings.smoothing)
 
-            "CH${settings.midiChannel} CC${settings.midiCC}"
+        midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
     }
 
 }
