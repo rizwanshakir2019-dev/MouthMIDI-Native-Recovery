@@ -96,6 +96,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var flashlightSwitch: Switch
     private lateinit var keepScreenAwakeSwitch: Switch
+
+    private lateinit var cameraResolutionLowRadio: RadioButton
+    private lateinit var cameraResolutionBalancedRadio: RadioButton
+    private lateinit var cameraResolutionHighRadio: RadioButton
     private lateinit var midiChannelInput: EditText
     private lateinit var midiCCInput: EditText
     private lateinit var jawClosedCalibrationInput: TextView
@@ -398,7 +402,18 @@ class MainActivity : AppCompatActivity() {
                     .setBackpressureStrategy(
                         ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
                     )
-                    .setTargetResolution(Size(640, 480))
+                    .setTargetResolution(
+                        when (settings.cameraResolution) {
+                            "LOW" ->
+                                Size(320, 240)
+
+                            "HIGH" ->
+                                Size(1280, 720)
+
+                            else ->
+                                Size(640, 480)
+                        }
+                    )
                     .build()
 
 
@@ -910,6 +925,30 @@ class MainActivity : AppCompatActivity() {
             } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
+        }
+
+        cameraResolutionLowRadio =
+            view.findViewById(R.id.cameraResolutionLowRadio)
+
+        cameraResolutionBalancedRadio =
+            view.findViewById(R.id.cameraResolutionBalancedRadio)
+
+        cameraResolutionHighRadio =
+            view.findViewById(R.id.cameraResolutionHighRadio)
+
+        cameraResolutionLowRadio.setOnClickListener {
+            settings.cameraResolution = "LOW"
+            settingsRepository.save(settings)
+        }
+
+        cameraResolutionBalancedRadio.setOnClickListener {
+            settings.cameraResolution = "BALANCED"
+            settingsRepository.save(settings)
+        }
+
+        cameraResolutionHighRadio.setOnClickListener {
+            settings.cameraResolution = "HIGH"
+            settingsRepository.save(settings)
         }
 
         midiChannelInput = view.findViewById(R.id.midiChannelInput)
@@ -1747,6 +1786,15 @@ private fun loadSettingsUI() {
 
         flashlightSwitch.isChecked = settings.flashlightEnabled
         keepScreenAwakeSwitch.isChecked = settings.keepScreenAwake
+
+        cameraResolutionLowRadio.isChecked =
+            settings.cameraResolution == "LOW"
+
+        cameraResolutionBalancedRadio.isChecked =
+            settings.cameraResolution == "BALANCED"
+
+        cameraResolutionHighRadio.isChecked =
+            settings.cameraResolution == "HIGH"
 
         if (settings.transport == "WIFI") {
               wifiTransportRadio.isChecked = true

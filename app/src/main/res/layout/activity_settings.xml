@@ -366,6 +366,39 @@
             android:layout_marginStart="16dp"
             android:layout_marginBottom="8dp"/>
 
+       
+          <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Camera Analysis Resolution"
+              android:textStyle="bold"
+              android:layout_marginTop="12dp"/>
+
+          <RadioGroup
+              android:id="@+id/cameraResolutionGroup"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+
+              <RadioButton
+                  android:id="@+id/cameraResolutionLowRadio"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Low (320x240) - Lowest latency"/>
+
+              <RadioButton
+                  android:id="@+id/cameraResolutionBalancedRadio"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="Balanced (640x480) - Recommended"/>
+
+              <RadioButton
+                  android:id="@+id/cameraResolutionHighRadio"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="High (1280x720) - Best accuracy"/>
+
+          </RadioGroup>
+
         </LinearLayout>
 
         <LinearLayout
