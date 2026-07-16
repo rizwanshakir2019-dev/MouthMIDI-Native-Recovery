@@ -17,7 +17,19 @@ class MouthMeterView @JvmOverloads constructor(
 
     private var value = 0f
 
+    private var lastUpdateTime = 0L
+    private val updateInterval = 33L
+
     fun setValue(cc: Int) {
+
+        val now = System.currentTimeMillis()
+
+        if (now - lastUpdateTime < updateInterval) {
+            return
+        }
+
+        lastUpdateTime = now
+
         value = cc.coerceIn(0, 127).toFloat()
         invalidate()
     }
