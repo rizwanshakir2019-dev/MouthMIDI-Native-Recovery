@@ -21,6 +21,7 @@ import android.widget.RadioButton
 import android.widget.SeekBar
 import android.util.Log
 import android.widget.TextView
+import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.Spinner
 import android.widget.ArrayAdapter
@@ -1102,13 +1103,34 @@ class MainActivity : AppCompatActivity() {
             settingsRepository.save(settings)
             applyTheme()
         }
-val youtubeLinkText =
-            view.findViewById<TextView>(R.id.youtubeLinkText)
+        val rsLogo =
+            view.findViewById<ImageView>(R.id.rsLogo)
 
-        youtubeLinkText.paintFlags =
-            youtubeLinkText.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        val facebookLinkIcon =
+            view.findViewById<ImageView>(R.id.facebookLinkIcon)
 
-        youtubeLinkText.setOnClickListener {
+        val youtubeLinkIcon =
+            view.findViewById<ImageView>(R.id.youtubeLinkIcon)
+
+        rsLogo.setOnClickListener {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://lnkfi.re/riz1shakir")
+                )
+            )
+        }
+
+        facebookLinkIcon.setOnClickListener {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://www.facebook.com/Riz1Shakir")
+            )
+            intent.setPackage("com.android.chrome")
+            startActivity(intent)
+        }
+
+        youtubeLinkIcon.setOnClickListener {
             startActivity(
                 Intent(
                     Intent.ACTION_VIEW,
