@@ -113,6 +113,13 @@ class SettingsRepository(
                     true
                 ),
 
+            cameraResolution =
+                prefs.getString(
+                    "cameraResolution",
+                    "BALANCED"
+                ) ?: "BALANCED",
+
+
             transport =
                 prefs.getString(
                   "transport",
@@ -208,6 +215,11 @@ class SettingsRepository(
                 "keepScreenAwake",
                 settings.keepScreenAwake
             )
+
+              .putString(
+                  "cameraResolution",
+                  settings.cameraResolution
+              )
 
               .putString(
                   "transport",

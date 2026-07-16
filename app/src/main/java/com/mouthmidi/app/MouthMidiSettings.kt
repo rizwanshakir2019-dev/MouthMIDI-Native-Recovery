@@ -35,5 +35,6 @@ data class MouthMidiSettings(
 
     var flashlightEnabled: Boolean = false,
 
-    var keepScreenAwake: Boolean = true
+    var keepScreenAwake: Boolean = true,
+    var cameraResolution: String = "BALANCED"
 )
