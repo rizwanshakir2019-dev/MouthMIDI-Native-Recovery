@@ -104,12 +104,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var midiCCInput: EditText
     private lateinit var jawClosedCalibrationInput: TextView
     private lateinit var jawOpenCalibrationInput: TextView
-    private lateinit var smoothingSeekBar: SeekBar
+    private lateinit var attackSpeedSeekBar: SeekBar
+    private lateinit var releaseSpeedSeekBar: SeekBar
     private lateinit var minCCSeekBar: SeekBar
     private lateinit var maxCCSeekBar: SeekBar
     private lateinit var deadZoneSeekBar: SeekBar
 
-    private lateinit var smoothingValueText: TextView
+    private lateinit var attackSpeedValueText: TextView
+    private lateinit var releaseSpeedValueText: TextView
     private lateinit var minCCValueText: TextView
     private lateinit var maxCCValueText: TextView
     private lateinit var deadZoneValueText: TextView
@@ -129,11 +131,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var settings: MouthMidiSettings
 
+    private lateinit var attackReleaseProcessor: AttackReleaseProcessor
+
     private lateinit var settingsRepository: SettingsRepository
 
     private lateinit var midiOutputManager: MidiOutputManager
 
-    private lateinit var smoothingProcessor: SmoothingProcessor
 
 
     private var frameCount = 0
@@ -180,6 +183,8 @@ class MainActivity : AppCompatActivity() {
 
         settings = settingsRepository.load()
 
+        attackReleaseProcessor = AttackReleaseProcessor()
+
         if (settings.keepScreenAwake) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
@@ -210,9 +215,6 @@ class MainActivity : AppCompatActivity() {
         midiOutputManager.connect()
 
 
-        smoothingProcessor = SmoothingProcessor(
-            settings.smoothing
-        )
 
 
 
@@ -670,9 +672,11 @@ class MainActivity : AppCompatActivity() {
 
 
                 var mouthOpen =
-                    smoothingProcessor.process(
-                        calibrateJaw(lastJawOpen)
-                    )
+                      attackReleaseProcessor.process(
+                          calibrateJaw(lastJawOpen),
+                          settings.attackSpeed,
+                          settings.releaseSpeed
+                      )
 
                 if (mouthOpen < settings.deadZone) {
                     mouthOpen = 0f
@@ -960,14 +964,25 @@ class MainActivity : AppCompatActivity() {
         jawClosedCalibrationInput = view.findViewById(R.id.jawClosedCalibrationInput)
         jawOpenCalibrationInput = view.findViewById(R.id.jawOpenCalibrationInput)
 
-        smoothingSeekBar = view.findViewById(R.id.smoothingSeekBar)
+          attackSpeedSeekBar =
+              view.findViewById(R.id.attackSeekBar)
+
+          releaseSpeedSeekBar =
+              view.findViewById(R.id.releaseSeekBar)
+
+          attackSpeedValueText =
+              view.findViewById(R.id.attackValueText)
+
+          releaseSpeedValueText =
+              view.findViewById(R.id.releaseValueText)
+
+
         minCCSeekBar = view.findViewById(R.id.minCCSeekBar)
         maxCCSeekBar = view.findViewById(R.id.maxCCSeekBar)
 
         deadZoneSeekBar = view.findViewById(R.id.deadZoneSeekBar)
 
 
-        smoothingValueText = view.findViewById(R.id.smoothingValueText)
         minCCValueText = view.findViewById(R.id.minCCValueText)
         maxCCValueText = view.findViewById(R.id.maxCCValueText)
 
@@ -1233,18 +1248,6 @@ val youtubeLinkText =
 
 
       private fun setupSliderListeners() {
-
-          smoothingSeekBar.setOnSeekBarChangeListener(
-              object : SeekBar.OnSeekBarChangeListener {
-                  override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                      smoothingValueText.text =
-                          String.format("%.2f", progress / 100f)
-                  }
-                  override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-                  override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-              }
-          )
-
           minCCSeekBar.setOnSeekBarChangeListener(
               object : SeekBar.OnSeekBarChangeListener {
                   override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -1265,6 +1268,41 @@ val youtubeLinkText =
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
                 }
             )
+            attackSpeedSeekBar.setOnSeekBarChangeListener(
+                object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(
+                        seekBar: SeekBar?,
+                        progress: Int,
+                        fromUser: Boolean
+                    ) {
+                        attackSpeedValueText.text =
+                            String.format("%.2f", (progress - 50) / 50f)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                }
+            )
+
+
+            releaseSpeedSeekBar.setOnSeekBarChangeListener(
+                object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(
+                        seekBar: SeekBar?,
+                        progress: Int,
+                        fromUser: Boolean
+                    ) {
+                        releaseSpeedValueText.text =
+                            String.format("%.2f", (progress - 50) / 50f)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                }
+            )
+
+
+
 
           deadZoneSeekBar.setOnSeekBarChangeListener(
               object : SeekBar.OnSeekBarChangeListener {
@@ -1338,9 +1376,11 @@ val youtubeLinkText =
 
             midiChannel =
                 settings.midiChannel,
+              attackSpeed =
+                  settings.attackSpeed,
 
-            smoothing =
-                settings.smoothing,
+              releaseSpeed =
+                  settings.releaseSpeed,
 
               deadZone =
                   settings.deadZone,
@@ -1370,7 +1410,8 @@ val youtubeLinkText =
           settings.midiCC = 1
           settings.midiChannel = 1
 
-          settings.smoothing = 0f
+          settings.attackSpeed = 0f
+            settings.releaseSpeed = 0f
           settings.deadZone = 0f
 
           settings.invert = false
@@ -1415,8 +1456,11 @@ val youtubeLinkText =
           settings.midiChannel =
               preset.midiChannel
 
-        settings.smoothing =
-              preset.smoothing
+        settings.attackSpeed =
+                preset.attackSpeed
+
+            settings.releaseSpeed =
+                preset.releaseSpeed
 
           settings.deadZone =
               preset.deadZone
@@ -1755,11 +1799,17 @@ private fun loadSettingsUI() {
         )
 
 
-        smoothingSeekBar.progress =
-            (settings.smoothing * 100).toInt()
+        attackSpeedSeekBar.progress =
+            ((settings.attackSpeed * 50) + 50).toInt()
 
-        smoothingValueText.text =
-            String.format("%.2f", settings.smoothing)
+        releaseSpeedSeekBar.progress =
+            ((settings.releaseSpeed * 50) + 50).toInt()
+
+        attackSpeedValueText.text =
+            String.format("%.2f", settings.attackSpeed)
+
+        releaseSpeedValueText.text =
+            String.format("%.2f", settings.releaseSpeed)
 
 
         minCCSeekBar.progress =
@@ -1833,8 +1883,11 @@ private fun loadSettingsUI() {
             midiCCInput.text.toString().toIntOrNull()
                 ?.coerceIn(0,127) ?: 1
 
-        settings.smoothing =
-            (smoothingSeekBar.progress / 100f) * 0.85f
+        settings.attackSpeed =
+              (attackSpeedSeekBar.progress - 50) / 50f
+
+          settings.releaseSpeed =
+              (releaseSpeedSeekBar.progress - 50) / 50f
 
         settings.minCC =
             minCCSeekBar.progress.coerceIn(0,127)
@@ -1872,7 +1925,6 @@ private fun loadSettingsUI() {
 
         settingsRepository.save(settings)
 
-          smoothingProcessor.setAmount(settings.smoothing)
 
         midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
     }

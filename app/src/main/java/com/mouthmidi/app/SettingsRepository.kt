@@ -70,9 +70,15 @@ class SettingsRepository(
                     1
                 ),
 
-            smoothing =
+            attackSpeed =
                 prefs.getFloat(
-                    "smoothing",
+                    "attackSpeed",
+                    0f
+                ),
+
+            releaseSpeed =
+                prefs.getFloat(
+                    "releaseSpeed",
                     0f
                 ),
 
@@ -181,8 +187,13 @@ class SettingsRepository(
             )
 
             .putFloat(
-                "smoothing",
-                settings.smoothing
+                "attackSpeed",
+                settings.attackSpeed
+            )
+
+            .putFloat(
+                "releaseSpeed",
+                settings.releaseSpeed
             )
 
 
@@ -261,7 +272,8 @@ class SettingsRepository(
             .putInt("${name}_midiCC", settings.midiCC)
             .putInt("${name}_midiChannel", settings.midiChannel)
 
-            .putFloat("${name}_smoothing", settings.smoothing)
+            .putFloat("${name}_attackSpeed", settings.attackSpeed)
+            .putFloat("${name}_releaseSpeed", settings.releaseSpeed)
             .putFloat("${name}_deadZone", settings.deadZone)
 
             .putBoolean("${name}_invert", settings.invert)
@@ -273,7 +285,7 @@ class SettingsRepository(
 
             .apply()
 
-          println("DEBUG SAVE PRESET: $name midiCC=${settings.midiCC} channel=${settings.midiChannel} smoothing=${settings.smoothing} theme=${settings.themeColor}")
+          println("DEBUG SAVE PRESET: $name midiCC=${settings.midiCC} channel=${settings.midiChannel} attack=${settings.attackSpeed} release=${settings.releaseSpeed} theme=${settings.themeColor}")
     }
 
 
@@ -303,8 +315,11 @@ class SettingsRepository(
             midiChannel =
                 presetPrefs.getInt("${name}_midiChannel",1),
 
-            smoothing =
-                presetPrefs.getFloat("${name}_smoothing",0f),
+            attackSpeed =
+                presetPrefs.getFloat("${name}_attackSpeed",0f),
+
+            releaseSpeed =
+                presetPrefs.getFloat("${name}_releaseSpeed",0f),
 
 
             deadZone =
@@ -335,7 +350,8 @@ class SettingsRepository(
               .remove("${name}_maxCC")
               .remove("${name}_midiCC")
               .remove("${name}_midiChannel")
-              .remove("${name}_smoothing")
+              .remove("${name}_attackSpeed")
+              .remove("${name}_releaseSpeed")
               .remove("${name}_deadZone")
               .remove("${name}_invert")
               .remove("${name}_holdLastValue")

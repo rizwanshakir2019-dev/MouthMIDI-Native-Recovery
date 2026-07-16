@@ -14,7 +14,9 @@ data class PresetSettings(
 
     var midiChannel: Int = 1,
 
-    var smoothing: Float = 0f,
+    var attackSpeed: Float = 0f,
+
+    var releaseSpeed: Float = 0f,
 
     var deadZone: Float = 0f,
 
