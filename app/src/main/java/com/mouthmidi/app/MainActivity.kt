@@ -145,6 +145,8 @@ class MainActivity : AppCompatActivity() {
     private var calibrationMax = 0f
     private var calibrationStartTime = 0L
     private var lastCC = 0
+    private var lastSentCC = -1
+    private val ccChangeThreshold = 2
 
     private var useFrontCamera = true
     private var cameraInstance: Camera? = null
@@ -709,7 +711,11 @@ class MainActivity : AppCompatActivity() {
         value:Int
     ){
 
-        if (value == lastCC) return
+        if (lastSentCC >= 0 && kotlin.math.abs(value - lastSentCC) < ccChangeThreshold) {
+            lastCC = value
+            return
+        }
+        lastSentCC = value
         lastCC = value
 
         midiOutputManager.sendCC(
