@@ -3,7 +3,9 @@
 
     <application
         android:theme="@style/AppTheme"
-        android:label="MouthMIDI Native">
+        android:label="MouthMIDI Native"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher">
 
         <activity
             android:name=".MainActivity"
