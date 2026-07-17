@@ -239,6 +239,16 @@ class MainActivity : AppCompatActivity() {
 
         midiTransport.connect()
 
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(object : Runnable {
+            override fun run() {
+                if (settings.transport == "WIFI" && midiTransport is RtpMidiTransport) {
+                    outputStatus.text = "C=" + (midiTransport as RtpMidiTransport).isActuallyConnected() + " S=" + (midiTransport as RtpMidiTransport).getSendCallCount() + " P=" + (midiTransport as RtpMidiTransport).getPacketCount() + " E=" + (midiTransport as RtpMidiTransport).getLastError()
+                }
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this, 1000)
+            }
+        }, 1000)
+
+
 
 
 

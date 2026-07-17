@@ -17,6 +17,31 @@ class RtpMidiTransport(
     private var socket: DatagramSocket? = null
     private var address: InetAddress? = null
 
+    private var packetCount = 0
+
+    private var sendCallCount = 0
+
+    private var lastError = "none"
+
+    fun getLastError(): String {
+        return lastError
+    }
+
+
+    fun getSendCallCount(): Int {
+        return sendCallCount
+    }
+
+    fun isActuallyConnected(): Boolean {
+        return connected
+    }
+
+
+    fun getPacketCount(): Int {
+        return packetCount
+    }
+
+
 
     override var connected = false
         private set
@@ -44,6 +69,8 @@ class RtpMidiTransport(
             connected = false
 
             onConnectionChanged(false)
+
+                lastError = e.javaClass.simpleName
 
             Log.e(
                 "MouthMIDI",
@@ -77,6 +104,9 @@ class RtpMidiTransport(
         value: Int
     ) {
 
+
+        sendCallCount++
+
         if (!connected) return
 
 
@@ -99,10 +129,22 @@ class RtpMidiTransport(
                 )
 
 
-            socket?.send(packet)
+            Thread {
+                try {
+                    socket?.send(packet)
+                    packetCount++
+                    if (packetCount % 100 == 0) {
+                        Log.d("MouthMIDI", "RTP packets sent: $packetCount")
+                    }
+                } catch (e: Exception) {
+                    lastError = e.javaClass.simpleName
+                }
+            }.start()
 
 
         } catch (e: Exception) {
+
+                lastError = e.javaClass.simpleName
 
             Log.e(
                 "MouthMIDI",
