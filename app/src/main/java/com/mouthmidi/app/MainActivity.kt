@@ -1550,7 +1550,7 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
+            shape = GradientDrawable.OVAL
             cornerRadius = 16f
             setColor(color)
             setStroke(
@@ -1735,7 +1735,7 @@ class MainActivity : AppCompatActivity() {
         midiStatus.setTextColor(Color.WHITE)
 
         val startButtonDrawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
+            shape = GradientDrawable.OVAL
             cornerRadius = 38f
             setColor(color)
             setStroke(1, Color.WHITE)
@@ -1750,7 +1750,7 @@ class MainActivity : AppCompatActivity() {
         settingsButton.setTextColor(color)
 
         val buttonDrawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
+            shape = GradientDrawable.OVAL
             cornerRadius = 30f
             setColor(getButtonFillColor())
             setStroke(1, Color.WHITE)
