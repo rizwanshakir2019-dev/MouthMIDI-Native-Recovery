@@ -82,6 +82,12 @@ class SettingsRepository(
                     0f
                 ),
 
+            smoothing =
+                prefs.getFloat(
+                    "smoothing",
+                    0f
+                ),
+
 
             deadZone =
                 prefs.getFloat(
@@ -196,6 +202,11 @@ class SettingsRepository(
                 settings.releaseSpeed
             )
 
+            .putFloat(
+                "smoothing",
+                settings.smoothing
+            )
+
 
             .putFloat(
                 "deadZone",
@@ -274,6 +285,7 @@ class SettingsRepository(
 
             .putFloat("${name}_attackSpeed", settings.attackSpeed)
             .putFloat("${name}_releaseSpeed", settings.releaseSpeed)
+            .putFloat("${name}_smoothing", settings.smoothing)
             .putFloat("${name}_deadZone", settings.deadZone)
 
             .putBoolean("${name}_invert", settings.invert)
@@ -321,6 +333,9 @@ class SettingsRepository(
             releaseSpeed =
                 presetPrefs.getFloat("${name}_releaseSpeed",0f),
 
+            smoothing =
+                presetPrefs.getFloat("${name}_smoothing",0f),
+
 
             deadZone =
                 presetPrefs.getFloat("${name}_deadZone",0f),
@@ -352,6 +367,7 @@ class SettingsRepository(
               .remove("${name}_midiChannel")
               .remove("${name}_attackSpeed")
               .remove("${name}_releaseSpeed")
+              .remove("${name}_smoothing")
               .remove("${name}_deadZone")
               .remove("${name}_invert")
               .remove("${name}_holdLastValue")
