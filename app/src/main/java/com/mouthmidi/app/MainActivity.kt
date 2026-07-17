@@ -1112,6 +1112,9 @@ class MainActivity : AppCompatActivity() {
         val youtubeLinkIcon =
             view.findViewById<ImageView>(R.id.youtubeLinkIcon)
 
+        val spotifyLinkIcon =
+            view.findViewById<ImageView>(R.id.spotifyLinkIcon)
+
         rsLogo.setOnClickListener {
             startActivity(
                 Intent(
@@ -1135,6 +1138,15 @@ class MainActivity : AppCompatActivity() {
                 Intent(
                     Intent.ACTION_VIEW,
                     Uri.parse("https://www.youtube.com/@rizwanshakir")
+                )
+            )
+        }
+
+        spotifyLinkIcon.setOnClickListener {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://open.spotify.com/artist/2NI1LUvwQOLJ7JtlWPBETo?si=8a1fb1a76f7a430c")
                 )
             )
         }
@@ -1550,7 +1562,7 @@ class MainActivity : AppCompatActivity() {
     ) {
 
         val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
+            shape = GradientDrawable.RECTANGLE
             cornerRadius = 16f
             setColor(color)
             setStroke(
