@@ -4,6 +4,8 @@ import android.util.Log
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 
 
 class RtpMidiTransport(
@@ -23,9 +25,18 @@ class RtpMidiTransport(
 
     private var lastError = "none"
 
+    private val sendQueue: BlockingQueue<DatagramPacket> =
+        LinkedBlockingQueue()
+
+    private var senderThread: Thread? = null
+
+    private var senderRunning = false
+
+
     fun getLastError(): String {
         return lastError
     }
+
 
 
     fun getSendCallCount(): Int {
@@ -55,6 +66,30 @@ class RtpMidiTransport(
 
             socket = DatagramSocket()
 
+            senderRunning = true
+
+            senderThread = Thread {
+                while (senderRunning) {
+                    try {
+                        val packet = sendQueue.take()
+                        socket?.send(packet)
+                        packetCount++
+
+                        if (packetCount % 100 == 0) {
+                            Log.d(
+                                "MouthMIDI",
+                                "RTP packets sent: $packetCount"
+                            )
+                        }
+
+                    } catch (e: Exception) {
+                        lastError = e.javaClass.simpleName
+                    }
+                }
+            }
+
+            senderThread?.start()
+
             connected = true
 
             onConnectionChanged(true)
@@ -83,7 +118,12 @@ class RtpMidiTransport(
 
     override fun disconnect() {
 
-        socket?.close()
+
+          senderRunning = false
+          senderThread?.interrupt()
+          senderThread = null
+          sendQueue.clear()
+          socket?.close()
 
         socket = null
 
@@ -129,17 +169,7 @@ class RtpMidiTransport(
                 )
 
 
-            Thread {
-                try {
-                    socket?.send(packet)
-                    packetCount++
-                    if (packetCount % 100 == 0) {
-                        Log.d("MouthMIDI", "RTP packets sent: $packetCount")
-                    }
-                } catch (e: Exception) {
-                    lastError = e.javaClass.simpleName
-                }
-            }.start()
+              sendQueue.offer(packet)
 
 
         } catch (e: Exception) {
