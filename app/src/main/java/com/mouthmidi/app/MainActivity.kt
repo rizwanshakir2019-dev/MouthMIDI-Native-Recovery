@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var settingsRepository: SettingsRepository
 
-    private lateinit var midiOutputManager: MidiOutputManager
+    private lateinit var midiTransport: MidiTransport
 
 
 
@@ -203,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
         outputStatus = findViewById(R.id.outputStatus)
 
-        midiOutputManager = MidiOutputManager(this) { connected ->
+        midiTransport = UsbMidiTransport(this) { connected ->
 
             runOnUiThread {
 
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-        midiOutputManager.connect()
+        midiTransport.connect()
 
 
 
@@ -754,7 +754,7 @@ class MainActivity : AppCompatActivity() {
         lastSentCC = value
         lastCC = value
 
-        midiOutputManager.sendCC(
+        midiTransport.sendCC(
             settings.midiChannel,
             settings.midiCC,
             value
@@ -795,7 +795,7 @@ class MainActivity : AppCompatActivity() {
         cameraExecutor.shutdown()
 
 
-        midiOutputManager.cleanup()
+        midiTransport.disconnect()
         faceLandmarker?.close()
     }
 
