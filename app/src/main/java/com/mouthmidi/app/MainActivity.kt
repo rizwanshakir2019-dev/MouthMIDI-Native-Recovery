@@ -1298,7 +1298,7 @@ class MainActivity : AppCompatActivity() {
                         fromUser: Boolean
                     ) {
                         attackSpeedValueText.text =
-                            String.format("%.2f", (progress - 50) / 50f)
+                            String.format("%.2f", (progress - 50) / 33.333f)
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -1315,7 +1315,7 @@ class MainActivity : AppCompatActivity() {
                         fromUser: Boolean
                     ) {
                         releaseSpeedValueText.text =
-                            String.format("%.2f", (progress - 50) / 50f)
+                            String.format("%.2f", (progress - 50) / 33.333f)
                     }
 
                     override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -1822,10 +1822,10 @@ private fun loadSettingsUI() {
 
 
         attackSpeedSeekBar.progress =
-            ((settings.attackSpeed * 50) + 50).toInt()
+            ((settings.attackSpeed * 33.333f) + 50).toInt()
 
         releaseSpeedSeekBar.progress =
-            ((settings.releaseSpeed * 50) + 50).toInt()
+            ((settings.releaseSpeed * 33.333f) + 50).toInt()
 
         attackSpeedValueText.text =
             String.format("%.2f", settings.attackSpeed)
@@ -1906,10 +1906,10 @@ private fun loadSettingsUI() {
                 ?.coerceIn(0,127) ?: 1
 
         settings.attackSpeed =
-              (attackSpeedSeekBar.progress - 50) / 50f
+              (attackSpeedSeekBar.progress - 50) / 33.333f
 
           settings.releaseSpeed =
-              (releaseSpeedSeekBar.progress - 50) / 50f
+              (releaseSpeedSeekBar.progress - 50) / 33.333f
 
         settings.minCC =
             minCCSeekBar.progress.coerceIn(0,127)

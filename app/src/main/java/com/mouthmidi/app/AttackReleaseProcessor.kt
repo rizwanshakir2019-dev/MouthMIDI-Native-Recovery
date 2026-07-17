@@ -32,7 +32,7 @@ class AttackReleaseProcessor {
 
                         val smoothFactor =
                             (0.20f + attackAmount * 0.17f)
-                                .coerceIn(0.03f, 0.20f)
+                                .coerceIn(0.015f, 0.20f)
 
                         previous +
                                 (input - previous) * smoothFactor
@@ -44,7 +44,7 @@ class AttackReleaseProcessor {
 
                         val jumpFactor =
                             (1f + attackAmount * 4f)
-                                .coerceIn(1f, 5f)
+                                .coerceIn(1f, 7f)
 
                         previous +
                                 (input - previous) * jumpFactor
@@ -67,7 +67,7 @@ class AttackReleaseProcessor {
 
                         val smoothFactor =
                             (0.20f + releaseAmount * 0.17f)
-                                .coerceIn(0.03f, 0.20f)
+                                .coerceIn(0.015f, 0.20f)
 
                         previous +
                                 (input - previous) * smoothFactor
@@ -79,7 +79,7 @@ class AttackReleaseProcessor {
 
                         val jumpFactor =
                             (1f + releaseAmount * 4f)
-                                .coerceIn(1f, 5f)
+                                .coerceIn(1f, 7f)
 
                         previous +
                                 (input - previous) * jumpFactor
