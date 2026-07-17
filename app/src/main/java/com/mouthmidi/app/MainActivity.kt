@@ -272,6 +272,10 @@ class MainActivity : AppCompatActivity() {
 
         settingsButton = findViewById(R.id.settingsButton)
 
+        addButtonPressAnimation(cameraButton)
+        addButtonPressAnimation(startButton)
+        addButtonPressAnimation(settingsButton)
+
         applyTheme()
 
 
@@ -1648,6 +1652,36 @@ class MainActivity : AppCompatActivity() {
 
             else ->
                 Color.parseColor("#161620")
+        }
+    }
+
+
+
+    private fun addButtonPressAnimation(button: Button) {
+
+        button.setOnTouchListener { v, event ->
+
+            when (event.action) {
+
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    v.animate()
+                        .scaleX(0.92f)
+                        .scaleY(0.92f)
+                        .setDuration(60)
+                        .start()
+                }
+
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    v.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(80)
+                        .start()
+                }
+            }
+
+            false
         }
     }
 
