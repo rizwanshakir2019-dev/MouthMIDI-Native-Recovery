@@ -11,7 +11,7 @@ import java.io.IOException
 class MidiOutputManager(
     private val context: Context,
     private val onConnectionChanged: (Boolean) -> Unit = {}
-) {
+) : MidiTransport {
 
     private var midiManager: MidiManager? = null
     private var midiDevice: MidiDevice? = null
@@ -67,11 +67,11 @@ class MidiOutputManager(
         }
 
 
-    var connected = false
+    override var connected = false
         private set
 
 
-    fun connect() {
+    override fun connect() {
 
         midiManager =
             context.getSystemService(
@@ -153,7 +153,7 @@ class MidiOutputManager(
         )
     }
 
-    fun disconnect() {
+    override fun disconnect() {
 
         Log.d("MouthMIDI", "Disconnecting MIDI")
 
@@ -181,7 +181,7 @@ class MidiOutputManager(
 
 
 
-    fun sendCC(
+    override fun sendCC(
         channel: Int,
         cc: Int,
         value: Int
