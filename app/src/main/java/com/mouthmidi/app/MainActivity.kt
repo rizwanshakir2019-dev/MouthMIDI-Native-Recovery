@@ -203,23 +203,40 @@ class MainActivity : AppCompatActivity() {
         midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
         outputStatus = findViewById(R.id.outputStatus)
 
-        midiTransport = UsbMidiTransport(this) { connected ->
+        midiTransport =
+            if (settings.transport == "WIFI") {
 
-            runOnUiThread {
+                RtpMidiTransport(
+                    settings.wifiHost,
+                    settings.wifiPort,
+                    settings.wifiSessionName
+                ) { connected ->
 
-                  outputStatus.text =
-                      if (connected) {
-                          if (settings.transport == "WIFI")
-                              statusText(Color.GREEN, "WiFi")
-                          else
-                              statusText(Color.GREEN, "USB")
-                      } else {
-                          statusText(Color.GRAY, "No MIDI")
-                      }
+                    runOnUiThread {
 
+                        outputStatus.text =
+                            if (connected)
+                                statusText(Color.GREEN, "WiFi")
+                            else
+                                statusText(Color.GRAY, "No MIDI")
+                    }
+                }
+
+            } else {
+
+                UsbMidiTransport(this) { connected ->
+
+                    runOnUiThread {
+
+                        outputStatus.text =
+                            if (connected)
+                                statusText(Color.GREEN, "USB")
+                            else
+                                statusText(Color.GRAY, "No MIDI")
+                    }
+                }
             }
 
-        }
         midiTransport.connect()
 
 
