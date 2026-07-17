@@ -107,12 +107,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var jawOpenCalibrationInput: TextView
     private lateinit var attackSpeedSeekBar: SeekBar
     private lateinit var releaseSpeedSeekBar: SeekBar
+    private lateinit var smoothingSeekBar: SeekBar
     private lateinit var minCCSeekBar: SeekBar
     private lateinit var maxCCSeekBar: SeekBar
     private lateinit var deadZoneSeekBar: SeekBar
 
     private lateinit var attackSpeedValueText: TextView
     private lateinit var releaseSpeedValueText: TextView
+    private lateinit var smoothingValueText: TextView
     private lateinit var minCCValueText: TextView
     private lateinit var maxCCValueText: TextView
     private lateinit var deadZoneValueText: TextView
@@ -133,6 +135,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settings: MouthMidiSettings
 
     private lateinit var attackReleaseProcessor: AttackReleaseProcessor
+
+    private lateinit var smoothingProcessor: SmoothingProcessor
 
     private lateinit var settingsRepository: SettingsRepository
 
@@ -185,6 +189,9 @@ class MainActivity : AppCompatActivity() {
         settings = settingsRepository.load()
 
         attackReleaseProcessor = AttackReleaseProcessor()
+
+        smoothingProcessor = SmoothingProcessor()
+        smoothingProcessor.setAmount(settings.smoothing)
 
         if (settings.keepScreenAwake) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -676,9 +683,14 @@ class MainActivity : AppCompatActivity() {
             }
 
 
+                val smoothedJaw =
+                      smoothingProcessor.process(
+                          calibrateJaw(lastJawOpen)
+                      )
+
                 var mouthOpen =
                       attackReleaseProcessor.process(
-                          calibrateJaw(lastJawOpen),
+                          smoothedJaw,
                           settings.attackSpeed,
                           settings.releaseSpeed
                       )
@@ -968,6 +980,12 @@ class MainActivity : AppCompatActivity() {
 
         jawClosedCalibrationInput = view.findViewById(R.id.jawClosedCalibrationInput)
         jawOpenCalibrationInput = view.findViewById(R.id.jawOpenCalibrationInput)
+
+          smoothingSeekBar =
+              view.findViewById(R.id.smoothingSeekBar)
+
+          smoothingValueText =
+              view.findViewById(R.id.smoothingValueText)
 
           attackSpeedSeekBar =
               view.findViewById(R.id.attackSeekBar)
@@ -1306,6 +1324,24 @@ class MainActivity : AppCompatActivity() {
                     override fun onStopTrackingTouch(seekBar: SeekBar?) {}
                 }
             )
+            smoothingSeekBar.setOnSeekBarChangeListener(
+                object : SeekBar.OnSeekBarChangeListener {
+
+                    override fun onProgressChanged(
+                        seekBar: SeekBar?,
+                        progress: Int,
+                        fromUser: Boolean
+                    ) {
+                        smoothingValueText.text =
+                            String.format("%.2f", progress / 100f)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                }
+            )
+
             attackSpeedSeekBar.setOnSeekBarChangeListener(
                 object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(
@@ -1448,6 +1484,7 @@ class MainActivity : AppCompatActivity() {
           settings.midiCC = 1
           settings.midiChannel = 1
 
+          settings.smoothing = 0f
           settings.attackSpeed = 0f
             settings.releaseSpeed = 0f
           settings.deadZone = 0f
@@ -1493,6 +1530,9 @@ class MainActivity : AppCompatActivity() {
 
           settings.midiChannel =
               preset.midiChannel
+
+        settings.smoothing =
+                preset.smoothing
 
         settings.attackSpeed =
                 preset.attackSpeed
@@ -1867,6 +1907,12 @@ private fun loadSettingsUI() {
         )
 
 
+        smoothingSeekBar.progress =
+            (settings.smoothing * 100f).toInt()
+
+        smoothingValueText.text =
+            String.format("%.2f", settings.smoothing)
+
         attackSpeedSeekBar.progress =
             ((settings.attackSpeed * 33.333f) + 50).toInt()
 
@@ -1950,6 +1996,13 @@ private fun loadSettingsUI() {
         settings.midiCC =
             midiCCInput.text.toString().toIntOrNull()
                 ?.coerceIn(0,127) ?: 1
+
+        settings.smoothing =
+            smoothingSeekBar.progress / 100f
+
+        smoothingProcessor.setAmount(
+            settings.smoothing
+        )
 
         settings.attackSpeed =
               (attackSpeedSeekBar.progress - 50) / 33.333f

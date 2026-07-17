@@ -18,6 +18,8 @@ data class MouthMidiSettings(
 
     var releaseSpeed: Float = 0f,
 
+    var smoothing: Float = 0f,
+
     var deadZone: Float = 0f,
 
 
