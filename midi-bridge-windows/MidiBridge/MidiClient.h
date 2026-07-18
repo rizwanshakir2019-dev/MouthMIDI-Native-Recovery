@@ -210,13 +210,25 @@ private:
 
 	bool TryOpenOutputDevice(UINT id)
 	{
-		HMIDIOUT handle;
-		if (midiOutOpen(&handle, id, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
-		{
-			outDeviceHandles.push_back(handle);
-			return true;
-		}
-		return false;
+                HMIDIOUT handle;
+
+                MMRESULT result =
+                        midiOutOpen(&handle, id, 0, 0, CALLBACK_NULL);
+
+                printf("TryOpenOutputDevice(%u) -> %u\n",
+                        id,
+                        (unsigned)result);
+
+                if (result == MMSYSERR_NOERROR)
+                {
+                        outDeviceHandles.push_back(handle);
+
+                        printf("Opened output device %u\n", id);
+
+                        return true;
+                }
+
+                return false;
 	}
 
 	// Try to close the device.
