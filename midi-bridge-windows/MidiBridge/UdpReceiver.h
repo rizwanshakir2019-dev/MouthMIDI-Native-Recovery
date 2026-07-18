@@ -140,9 +140,16 @@ private:
             );
 
             printf(
-                "UDP packet received: length=%d\n",
+                "UDP packet received: length=%d",
                 length
             );
+
+            for(int i = 0; i < length; i++)
+            {
+                printf(" %02X", buffer[i]);
+            }
+
+            printf("\n");
 
 
             if(length == 4)
