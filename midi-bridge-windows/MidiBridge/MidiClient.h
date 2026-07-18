@@ -150,7 +150,16 @@ public:
 		{
 			for (auto& handle : outDeviceHandles)
 			{
-				midiOutShortMsg(handle, message.GetRaw32());
+				MMRESULT result = midiOutShortMsg(
+                                      handle,
+                                      message.GetRaw32()
+                                  );
+
+                                  printf(
+                                      "midiOutShortMsg -> result=%d raw=0x%08X\n",
+                                      result,
+                                      message.GetRaw32()
+                                  );
 			}
 			handleMutex.unlock();
 		}
