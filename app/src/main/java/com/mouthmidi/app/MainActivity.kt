@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsButton: Button
     private lateinit var recalibrateButton: Button
     private lateinit var defaultCalibrationButton: Button
+    private lateinit var userManualLink: TextView
     private lateinit var calibrationStatusText: TextView
     private lateinit var settingsScrollView: ScrollView
     private lateinit var settingsRootLayout: LinearLayout
@@ -126,7 +127,6 @@ class MainActivity : AppCompatActivity() {
       private lateinit var wifiSettingsContainer: View
       private lateinit var wifiHostInput: EditText
       private lateinit var wifiPortInput: EditText
-      private lateinit var wifiSessionInput: EditText
 
     private lateinit var cameraExecutor: ExecutorService
 
@@ -203,57 +203,8 @@ class MainActivity : AppCompatActivity() {
         midiStatus.text = String.format("CH%02d CC%02d", settings.midiChannel, settings.midiCC)
         outputStatus = findViewById(R.id.outputStatus)
 
-        midiTransport =
-            if (settings.transport == "WIFI") {
+        restartMidiTransport()
 
-                RtpMidiTransport(
-                    settings.wifiHost,
-                    settings.wifiPort,
-                    settings.wifiSessionName
-                ) { connected ->
-
-                    runOnUiThread {
-
-                        outputStatus.text =
-                            if (connected)
-                                statusText(Color.GREEN, "WiFi")
-                            else
-                                statusText(Color.GRAY, "No MIDI")
-                    }
-                }
-
-            } else {
-
-                UsbMidiTransport(this) { connected ->
-
-                    runOnUiThread {
-
-                        outputStatus.text =
-                            if (connected)
-                                statusText(Color.GREEN, "USB")
-                            else
-                                statusText(Color.GRAY, "No MIDI")
-                    }
-                }
-            }
-
-        midiTransport.connect()
-
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(object : Runnable {
-            override fun run() {
-                if (settings.transport == "WIFI" && midiTransport is RtpMidiTransport) {
-                    val rtp = midiTransport as RtpMidiTransport
-
-                    outputStatus.text =
-                        "C=" + rtp.isActuallyConnected() +
-                        " S=" + rtp.getSendCallCount() +
-                        " P=" + rtp.getPacketCount() +
-                        " Q=" + rtp.getQueueSize() +
-                        " E=" + rtp.getLastError()
-                }
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this, 1000)
-            }
-        }, 1000)
 
 
 
@@ -384,6 +335,47 @@ class MainActivity : AppCompatActivity() {
         )
 
         return spannable
+    }
+
+    private fun restartMidiTransport() {
+
+        if (::midiTransport.isInitialized) {
+            midiTransport.disconnect()
+        }
+
+        midiTransport =
+            if (settings.transport == "WIFI") {
+
+                RtpMidiTransport(
+                    settings.wifiHost,
+                    settings.wifiPort,
+                    settings.wifiSessionName
+                ) { connected ->
+
+                    runOnUiThread {
+                        outputStatus.text =
+                            if (connected)
+                                statusText(Color.GREEN, "WiFi")
+                            else
+                                statusText(Color.GRAY, "No MIDI")
+                    }
+                }
+
+            } else {
+
+                UsbMidiTransport(this) { connected ->
+
+                    runOnUiThread {
+                        outputStatus.text =
+                            if (connected)
+                                statusText(Color.GREEN, "USB")
+                            else
+                                statusText(Color.GRAY, "No MIDI")
+                    }
+                }
+            }
+
+        midiTransport.connect()
     }
 
 
@@ -1070,11 +1062,8 @@ class MainActivity : AppCompatActivity() {
           wifiPortInput =
               view.findViewById(R.id.wifiPortInput)
 
-          wifiSessionInput =
-              view.findViewById(R.id.wifiSessionInput)
-
-        recalibrateButton =
-            view.findViewById(R.id.recalibrateButton)
+          recalibrateButton =
+              view.findViewById(R.id.recalibrateButton)
 
         defaultCalibrationButton =
             view.findViewById(R.id.defaultCalibrationButton)
@@ -1112,6 +1101,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
 
+
         savePresetButton =
             view.findViewById(R.id.savePresetButton)
 
@@ -1121,6 +1111,23 @@ class MainActivity : AppCompatActivity() {
         wifiConnectButton =
             view.findViewById(R.id.wifiConnectButton)
 
+        userManualLink =
+            view.findViewById(R.id.userManualLink)
+
+        userManualLink.setOnClickListener {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://drive.google.com/file/d/1rE3lE6ek1CpN-TnU8I7Ccp_ftUoSm7g2/view?usp=sharing")
+            )
+            startActivity(intent)
+        }
+
+        wifiConnectButton.setOnClickListener {
+
+            saveSettings()
+
+            restartMidiTransport()
+        }
 
         
 
@@ -1868,6 +1875,9 @@ class MainActivity : AppCompatActivity() {
 
         cameraButton.setTextColor(color)
         settingsButton.setTextColor(color)
+        if (::userManualLink.isInitialized) {
+            userManualLink.setTextColor(color)
+        }
 
         val buttonDrawable = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
@@ -2011,9 +2021,6 @@ private fun loadSettingsUI() {
               settings.wifiPort.toString()
           )
 
-          wifiSessionInput.setText(
-              settings.wifiSessionName
-          )
 
           updateWifiSettingsVisibility()
 
@@ -2073,10 +2080,8 @@ private fun loadSettingsUI() {
 
           settings.wifiPort =
               wifiPortInput.text.toString()
-                  .toIntOrNull() ?: 5004
+                  .toIntOrNull() ?: 52365
 
-          settings.wifiSessionName =
-              wifiSessionInput.text.toString()
 
         settingsRepository.save(settings)
 

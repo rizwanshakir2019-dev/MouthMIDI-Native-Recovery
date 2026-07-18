@@ -33,7 +33,7 @@ data class MouthMidiSettings(
 
     var wifiHost: String = "192.168.1.100",
 
-    var wifiPort: Int = 5004,
+    var wifiPort: Int = 52365,
 
     var wifiSessionName: String = "MouthMIDI",
 

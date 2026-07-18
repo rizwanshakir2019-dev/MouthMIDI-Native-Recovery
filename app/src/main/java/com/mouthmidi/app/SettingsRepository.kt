@@ -147,7 +147,7 @@ class SettingsRepository(
               wifiPort =
                   prefs.getInt(
                   "wifiPort",
-                      5004
+                      52365
                   ),
 
               wifiSessionName =

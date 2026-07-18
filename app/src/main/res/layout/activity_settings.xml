@@ -591,20 +591,7 @@
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:inputType="number"
-                  android:text="5004"/>
-
-              <TextView
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:text="Session Name"
-                  android:layout_marginTop="8dp"/>
-
-                <EditText
-                    android:id="@+id/wifiSessionInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:text="MouthMIDI"/>
+                  android:text="52365"/>
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/wifiConnectButton"
@@ -612,10 +599,8 @@
                     android:background="@drawable/settings_button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Coming Soon"
+                    android:text="Connect"
                     android:layout_marginTop="12dp"/>
-
-
         </LinearLayout>
         </LinearLayout>
 
@@ -626,12 +611,28 @@
             android:layout_marginTop="32dp"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MouthMIDI native v1.0"
-                android:textSize="12sp"
-                android:textStyle="bold"/>
+              <LinearLayout
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="MouthMIDI native v1.0"
+                      android:textSize="12sp"
+                      android:textStyle="bold"/>
+
+                  <TextView
+                      android:id="@+id/userManualLink"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="   📖 User Manual"
+                      android:textSize="12sp"
+                      android:textStyle="bold"
+                      android:textColor="@android:color/white"/>
+
+              </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
