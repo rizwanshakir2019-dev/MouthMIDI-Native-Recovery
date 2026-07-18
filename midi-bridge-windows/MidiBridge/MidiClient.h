@@ -120,7 +120,17 @@ public:
         auto outDeviceCount = midiOutGetNumDevs();
         for (auto i = 0U; i < outDeviceCount; i++)
         {
-			TryOpenOutputDevice(i);
+                MIDIOUTCAPS caps;
+
+                if (midiOutGetDevCaps(i, &caps, sizeof(caps)) == MMSYSERR_NOERROR)
+                {
+                        if (wcscmp(caps.szPname, L"MouthMIDI Virtual") == 0)
+                        {
+                                wprintf(L"Selected output: %s\n", caps.szPname);
+                                TryOpenOutputDevice(i);
+                                break;
+                        }
+                }
         }
     }
 
