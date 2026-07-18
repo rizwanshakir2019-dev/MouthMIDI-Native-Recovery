@@ -139,6 +139,11 @@ private:
                 &senderSize
             );
 
+            printf(
+                "UDP packet received: length=%d\n",
+                length
+            );
+
 
             if(length == 4)
             {
