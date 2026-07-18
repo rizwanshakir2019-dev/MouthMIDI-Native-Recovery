@@ -177,18 +177,29 @@ private:
 		return false;
 	}
 
-	bool CheckOutputDeviceOpened(int id)
-	{
-		for (auto handle : outDeviceHandles)
-		{
-			UINT idFromHandle;
-			if (midiOutGetID(handle, &idFromHandle) == MMSYSERR_NOERROR)
-			{
-				if (idFromHandle == id) return true;
-			}
-		}
-		return false;
-	}
+        bool CheckOutputDeviceOpened(int id)
+        {
+                for (auto handle : outDeviceHandles)
+                {
+                        UINT idFromHandle;
+
+                        MMRESULT result =
+                                midiOutGetID(handle, &idFromHandle);
+
+                        printf("CheckOutputDeviceOpened(%d): result=%u idFromHandle=%u\\n",
+                                id,
+                                (unsigned)result,
+                                (unsigned)idFromHandle);
+
+                        if (result == MMSYSERR_NOERROR)
+                        {
+                                if ((int)idFromHandle == id)
+                                        return true;
+                        }
+                }
+
+                return false;
+        }
 
 	// Try to open an device.
 	bool TryOpenInputDevice(UINT id)
