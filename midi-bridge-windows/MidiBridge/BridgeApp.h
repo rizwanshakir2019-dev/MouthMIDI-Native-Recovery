@@ -101,7 +101,7 @@ private:
 	// UDP -> MIDI out
       int ProcessIncomingUdpMessage(const uint8_t* data, int length)
       {
-          if (length != 4)
+          if (length < 3)
               return 0;
 
           MidiMessage message(data);
