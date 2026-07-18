@@ -242,7 +242,14 @@ class MainActivity : AppCompatActivity() {
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(object : Runnable {
             override fun run() {
                 if (settings.transport == "WIFI" && midiTransport is RtpMidiTransport) {
-                    outputStatus.text = "C=" + (midiTransport as RtpMidiTransport).isActuallyConnected() + " S=" + (midiTransport as RtpMidiTransport).getSendCallCount() + " P=" + (midiTransport as RtpMidiTransport).getPacketCount() + " E=" + (midiTransport as RtpMidiTransport).getLastError()
+                    val rtp = midiTransport as RtpMidiTransport
+
+                    outputStatus.text =
+                        "C=" + rtp.isActuallyConnected() +
+                        " S=" + rtp.getSendCallCount() +
+                        " P=" + rtp.getPacketCount() +
+                        " Q=" + rtp.getQueueSize() +
+                        " E=" + rtp.getLastError()
                 }
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this, 1000)
             }

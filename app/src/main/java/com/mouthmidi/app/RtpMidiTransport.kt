@@ -52,6 +52,10 @@ class RtpMidiTransport(
         return packetCount
     }
 
+    fun getQueueSize(): Int {
+        return sendQueue.size
+    }
+
 
 
     override var connected = false
@@ -170,6 +174,11 @@ class RtpMidiTransport(
 
 
               sendQueue.offer(packet)
+
+                Log.d(
+                    "MouthMIDI",
+                    "WiFi queue size=${sendQueue.size}"
+                )
 
 
         } catch (e: Exception) {

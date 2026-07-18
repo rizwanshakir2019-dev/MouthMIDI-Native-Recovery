@@ -150,16 +150,7 @@ public:
 		{
 			for (auto& handle : outDeviceHandles)
 			{
-				MMRESULT result = midiOutShortMsg(
-                                      handle,
-                                      message.GetRaw32()
-                                  );
-
-                                  printf(
-                                      "midiOutShortMsg -> result=%d raw=0x%08X\n",
-                                      result,
-                                      message.GetRaw32()
-                                  );
+				midiOutShortMsg(handle, message.GetRaw32());
 			}
 			handleMutex.unlock();
 		}
@@ -186,29 +177,18 @@ private:
 		return false;
 	}
 
-        bool CheckOutputDeviceOpened(int id)
-        {
-                for (auto handle : outDeviceHandles)
-                {
-                        UINT idFromHandle;
-
-                        MMRESULT result =
-                                midiOutGetID(handle, &idFromHandle);
-
-                        printf("CheckOutputDeviceOpened(%d): result=%u idFromHandle=%u\\n",
-                                id,
-                                (unsigned)result,
-                                (unsigned)idFromHandle);
-
-                        if (result == MMSYSERR_NOERROR)
-                        {
-                                if ((int)idFromHandle == id)
-                                        return true;
-                        }
-                }
-
-                return false;
-        }
+	bool CheckOutputDeviceOpened(int id)
+	{
+		for (auto handle : outDeviceHandles)
+		{
+			UINT idFromHandle;
+			if (midiOutGetID(handle, &idFromHandle) == MMSYSERR_NOERROR)
+			{
+				if (idFromHandle == id) return true;
+			}
+		}
+		return false;
+	}
 
 	// Try to open an device.
 	bool TryOpenInputDevice(UINT id)
@@ -243,14 +223,7 @@ private:
                 {
                         outDeviceHandles.push_back(handle);
 
-                        MIDIOUTCAPS caps;
-                        midiOutGetDevCaps(id, &caps, sizeof(caps));
-
-                        wprintf(
-                                L"Opened output device %u : %s\n",
-                                id,
-                                caps.szPname
-                        );
+                        printf("Opened output device %u\n", id);
 
                         return true;
                 }
