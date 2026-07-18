@@ -1,0 +1,36 @@
+name: Build MidiBridge Windows
+
+on:
+  push:
+    branches:
+      - udp-midi-bridge-windows
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Locate solution
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter *.sln
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build solution
+        shell: cmd
+        run: |
+          cd midi-bridge-windows
+          msbuild MidiBridge.sln /p:Configuration=Release
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: MidiBridge-build
+          path: midi-bridge-windows
