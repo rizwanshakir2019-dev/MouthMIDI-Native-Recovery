@@ -152,7 +152,7 @@ private:
             printf("\n");
 
 
-            if(length == 4)
+            if(length >= 3)
             {
                 messageDelegate.ProcessIncomingUdpMessage(
                     buffer,
