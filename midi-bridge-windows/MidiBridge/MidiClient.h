@@ -158,7 +158,7 @@ public:
                         int selection = 1;
 
                         printf("Select output device [1-%u]: ", (unsigned)outDeviceCount);
-                        scanf("%d", &selection);
+                        scanf_s("%d", &selection);
                         getchar();
 
                         if (selection < 1) selection = 1;
