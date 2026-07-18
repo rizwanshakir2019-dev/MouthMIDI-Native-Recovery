@@ -107,32 +107,77 @@ public:
 	}
 
     // Try to open the all devices.
+    // Try to open the all devices.
     void OpenAllDevices()
     {
-		std::lock_guard<std::mutex> gurad(handleMutex);
-	
-		auto inDeviceCount = midiInGetNumDevs();
-        for (auto i = 0U; i < inDeviceCount; i++)
-        {
-			TryOpenInputDevice(i);
-        }
+                std::lock_guard<std::mutex> gurad(handleMutex);
 
-        auto outDeviceCount = midiOutGetNumDevs();
-        for (auto i = 0U; i < outDeviceCount; i++)
-        {
-                MIDIOUTCAPS caps;
-
-                if (midiOutGetDevCaps(i, &caps, sizeof(caps)) == MMSYSERR_NOERROR)
+                auto inDeviceCount = midiInGetNumDevs();
+                for (auto i = 0U; i < inDeviceCount; i++)
                 {
-                        if (wcscmp(caps.szPname, L"MouthMIDI Virtual") == 0)
+                        TryOpenInputDevice(i);
+                }
+
+                auto outDeviceCount = midiOutGetNumDevs();
+
+                if (selectedOutputDevice >= 0)
+                {
+                        TryOpenOutputDevice((UINT)selectedOutputDevice);
+
+                        MIDIOUTCAPS caps;
+                        if (midiOutGetDevCaps(
+                                selectedOutputDevice,
+                                &caps,
+                                sizeof(caps)
+                        ) == MMSYSERR_NOERROR)
                         {
-                                wprintf(L"Selected output: %s\n", caps.szPname);
-                                TryOpenOutputDevice(i);
-                                break;
+                                wprintf(
+                                        L"Reopening output device: %s\n",
+                                        caps.szPname
+                                );
                         }
                 }
-        }
+                else
+                {
+                        puts("");
+                        puts("Available MIDI Outputs");
+                        puts("----------------------");
+
+                        for (auto i = 0U; i < outDeviceCount; i++)
+                        {
+                                MIDIOUTCAPS caps;
+
+                                if (midiOutGetDevCaps(i, &caps, sizeof(caps)) == MMSYSERR_NOERROR)
+                                {
+                                        wprintf(L"%u. %s\n", i + 1, caps.szPname);
+                                }
+                        }
+
+                        puts("");
+
+                        int selection = 1;
+
+                        printf("Select output device [1-%u]: ", (unsigned)outDeviceCount);
+                        scanf("%d", &selection);
+                        getchar();
+
+                        if (selection < 1) selection = 1;
+                        if (selection > (int)outDeviceCount) selection = (int)outDeviceCount;
+
+                        UINT deviceId = (UINT)(selection - 1);
+
+                        selectedOutputDevice = deviceId;
+
+                        TryOpenOutputDevice(deviceId);
+
+                        MIDIOUTCAPS caps;
+                        if (midiOutGetDevCaps(deviceId, &caps, sizeof(caps)) == MMSYSERR_NOERROR)
+                        {
+                                wprintf(L"Selected output: %s\n", caps.szPname);
+                        }
+                }
     }
+
 
     // Close the all devices opened by this client.
     void CloseAllDevices()
@@ -181,6 +226,8 @@ private:
     std::vector<HMIDIIN> inDeviceHandles;
     std::vector<HMIDIOUT> outDeviceHandles;
 	std::mutex handleMutex;
+
+    int selectedOutputDevice = -1;
 
 	// Check if the device is already opened.
 	bool CheckInputDeviceOpened(int id)
