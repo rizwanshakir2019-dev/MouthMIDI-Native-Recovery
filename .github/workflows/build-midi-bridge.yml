@@ -1,36 +1,30 @@
-name: Build MidiBridge Windows
+name: Build MouthMIDI MIDI Bridge
 
 on:
-  push:
-    branches:
-      - udp-midi-bridge-windows
   workflow_dispatch:
+  push:
+    paths:
+      - "midi-bridge-windows/**"
+      - ".github/workflows/build-midi-bridge.yml"
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Locate solution
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse -Filter *.sln
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build solution
+      - name: Build MidiBridge
         shell: cmd
         run: |
-          cd midi-bridge-windows
-          msbuild MidiBridge.sln /p:Configuration=Release
+          msbuild midi-bridge-windows\MidiBridge\MidiBridge.vcxproj ^
+          /p:Configuration=Release ^
+          /p:Platform=Win32
 
-      - name: Upload build output
+      - name: Upload MidiBridge.exe
         uses: actions/upload-artifact@v4
         with:
-          name: MidiBridge-build
-          path: midi-bridge-windows
+          name: MouthMIDI-MidiBridge
+          path: |
+            midi-bridge-windows/MidiBridge/**/MidiBridge.exe
