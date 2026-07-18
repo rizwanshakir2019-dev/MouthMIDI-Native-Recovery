@@ -194,8 +194,8 @@ private:
 	bool TryOpenInputDevice(UINT id)
 	{
 		HMIDIIN handle;
-		DWORD_PTR callback = reinterpret_cast<DWORD_PTR>(MidiInProc);
-		DWORD_PTR instance = reinterpret_cast<DWORD_PTR>(&messageDelegate);
+                DWORD_PTR callback = reinterpret_cast<DWORD_PTR>(MidiInProc);
+                DWORD_PTR instance = reinterpret_cast<DWORD_PTR>(&messageDelegate);
 		if (midiInOpen(&handle, id, callback, instance, CALLBACK_FUNCTION) == MMSYSERR_NOERROR)
 		{
 			if (midiInStart(handle) == MMSYSERR_NOERROR)
@@ -211,9 +211,7 @@ private:
 	bool TryOpenOutputDevice(UINT id)
 	{
 		HMIDIOUT handle;
-		DWORD_PTR callback = reinterpret_cast<DWORD_PTR>(MidiInProc);
-		DWORD_PTR instance = reinterpret_cast<DWORD_PTR>(&messageDelegate);
-		if (midiOutOpen(&handle, id, callback, instance, CALLBACK_FUNCTION) == MMSYSERR_NOERROR)
+		if (midiOutOpen(&handle, id, 0, 0, CALLBACK_NULL) == MMSYSERR_NOERROR)
 		{
 			outDeviceHandles.push_back(handle);
 			return true;
